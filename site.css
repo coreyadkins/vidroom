@@ -1,0 +1,8 @@
+body {
+  background-color: SlateGray;
+  color: white;
+}
+div {
+  display: flex;
+  justify-content: center;
+}
