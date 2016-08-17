@@ -35,11 +35,11 @@ Python will be used to generate new VidRooms, including the shortuuid library fo
 UI for playing of videos will be handled by the YouTube Player API. Server can store and return startPos and endPos variables which remember what time the video was paused and played at.
 
 ## Schedule
-Syncing of Pause and Play Elements- Hard, 1 week
-Vidroom Generation- Easy, 0.5 day
-YouTube API Setup and manipulation- Medium, 3 days
-Webpage setup- HTML/CSS, JS DOM Manipulation- Medium, 3 days
-Playlist and events DB storage- Medium, 2 days
+- Syncing of Pause and Play Elements- Hard, 1 week
+- Vidroom Generation- Easy, 0.5 day
+- YouTube API Setup and manipulation- Medium, 3 days
+- Webpage setup- HTML/CSS, JS DOM Manipulation- Medium, 3 days
+- Playlist and events DB storage- Medium, 2 days
 
 ## Further Work
 - Use of WebSocket server for synchronization, using chat frameworks.
