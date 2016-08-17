@@ -13,10 +13,10 @@ Viewers of VidRoom are consistent, meaning that it is assumed all viewers of a v
 ## Data Model
 **Video**
 The linked YouTube video inputted by the user.
--Unique ID
--Title
--startPos
--endPos
+- Unique ID
+- Title
+- startPos
+- endPos
 
 **Playlists**
 Including:
@@ -39,23 +39,23 @@ Syncing of Pause and Play Elements- Hard, 1 week
 Vidroom Generation- Easy, 0.5 day
 YouTube API Setup and manipulation- Medium, 3 days
 Webpage setup- HTML/CSS, JS DOM Manipulation- Medium, 3 days
-Playlist and events DB stoarge- Medium, 2 days
+Playlist and events DB storage- Medium, 2 days
 
 ## Further Work
--Use of WebSocket server for synchronization, using chat frameworks.
--Custom UI outside of YouTube API.
--Drag and drop for playlist video reordering.
--Support for platforms outside of YouTube
--A chat box in the VidRoom
--“Favoriting” capability on videos in playlist
--Users, which could include functionality for:
-  -Remembering “My favorites”
-  -Sending invitations to VidRooms
-  -Displaying which user paused or played a video in a VidRoom
--Options for users to customize their vidroom:
-  -Change name of Vidroom
-  -Change color of text, background
-  -Upload a background image.
--Image sharing capability within vidroom framework?
--Further Synchronization work:
-  -Handling connectivity issues, buffering, etc.
+- Use of WebSocket server for synchronization, using chat frameworks.
+- Custom UI outside of YouTube API.
+- Drag and drop for playlist video reordering.
+- Support for platforms outside of YouTube
+- A chat box in the VidRoom
+- “Favoriting” capability on videos in playlist
+- Users, which could include functionality for:
+  - Remembering “My favorites”
+  - Sending invitations to VidRooms
+  - Displaying which user paused or played a video in a VidRoom
+- Options for users to customize their vidroom:
+  - Change name of Vidroom
+  - Change color of text, background
+  - Upload a background image.
+- Image sharing capability within vidroom framework?
+- Further Synchronization work:
+  - Handling connectivity issues, buffering, etc.
