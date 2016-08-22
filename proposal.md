@@ -15,13 +15,15 @@ Viewers of VidRoom are consistent, meaning that it is assumed all viewers of a v
 The linked YouTube video inputted by the user.
 - Unique ID
 - Title
-- startPos
-- endPos
 
 **Playlists**
 Including:
 -Videos or URLs
 -order
+
+**Event**
+- Play command when played by user
+- Pause command when paused by use
 
 ## Technical Components
 Syncing of pausing and play elements will be done via storing events and communicating them with the web server via HTTP, with the client side checking for new events every interval.
