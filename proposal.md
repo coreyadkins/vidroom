@@ -22,8 +22,9 @@ Including:
 -order
 
 **Event**
-- Play command when played by user
-- Pause command when paused by use
+When a video is played or paused, the Database stores:
+- Event type flag which contains event name ("play, pause")
+- Timestamp which contains video play time at event
 
 ## Technical Components
 Syncing of pausing and play elements will be done via storing events and communicating them with the web server via HTTP, with the client side checking for new events every interval.
@@ -61,3 +62,6 @@ UI for playing of videos will be handled by the YouTube Player API. Server can s
 - Image sharing capability within vidroom framework?
 - Further Synchronization work:
   - Handling connectivity issues, buffering, etc.
+
+## Personal Notes
+- Explore whether or not to use YouTube API with login. YouTube API allows storage of video data.
