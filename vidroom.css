@@ -1,0 +1,19 @@
+body {
+  background-color: SlateGray;
+  color: white;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+}
+
+div {
+  display: flex;
+  justify-content: center;
+}
+
+svg {
+  height: 50px;
+  width: 50px;
+}

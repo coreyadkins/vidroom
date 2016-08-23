@@ -3,11 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Vidroom</title>
-  </head>
-  <body>
-
-    <h1>Test</h1>
-    <div id="player"></div>
+    <link rel="stylesheet" href="vidroom.css" />
     <svg class="defs">
       <defs>
         <path id="pause-button-shape"  d="M24,0C10.745,0,0,10.745,0,24s10.745,24,24,24s24-10.745,24-24S37.255,0,24,0z M21,33.064c0,2.201-1.688,4-3.75,4
@@ -17,6 +13,14 @@
         C20.771,37.729,19.5,37.2,19.5,35V13c0-2.2,1.271-2.729,2.828-1.172l9.344,9.344C33.229,22.729,33.229,25.271,31.672,26.828z"/>
       </defs>
     </svg>
+  </head>
+  <body>
+    <header>
+      <h1>VidRoom</h1>
+    </header>
+    <div>
+      <div id="player"></div>
+    </div>
     <div class="buttons">
       <svg class="button" id="play-button">
         <use xlink:href="#play-button-shape"></use>
