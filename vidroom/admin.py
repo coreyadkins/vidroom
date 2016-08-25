@@ -1,0 +1,1 @@
+"""vidroom Admin Configuration."""

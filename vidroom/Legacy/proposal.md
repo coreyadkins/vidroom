@@ -15,13 +15,16 @@ Viewers of VidRoom are consistent, meaning that it is assumed all viewers of a v
 The linked YouTube video inputted by the user.
 - Unique ID
 - Title
-- startPos
-- endPos
 
 **Playlists**
 Including:
--Videos or URLs
--order
+- Videos or URLs
+- order
+
+**Event**
+When a video is played or paused, the Database stores:
+- Event type flag which contains event name ("play, pause")
+- Timestamp which contains video play time at event
 
 ## Technical Components
 Syncing of pausing and play elements will be done via storing events and communicating them with the web server via HTTP, with the client side checking for new events every interval.
@@ -35,11 +38,11 @@ Python will be used to generate new VidRooms, including the shortuuid library fo
 UI for playing of videos will be handled by the YouTube Player API. Server can store and return startPos and endPos variables which remember what time the video was paused and played at.
 
 ## Schedule
-Syncing of Pause and Play Elements- Hard, 1 week
-Vidroom Generation- Easy, 0.5 day
-YouTube API Setup and manipulation- Medium, 3 days
-Webpage setup- HTML/CSS, JS DOM Manipulation- Medium, 3 days
-Playlist and events DB storage- Medium, 2 days
+- Syncing of Pause and Play Elements- Hard, 1 week
+- Vidroom Generation- Easy, 0.5 day
+- YouTube API Setup and manipulation- Medium, 3 days
+- Webpage setup- HTML/CSS, JS DOM Manipulation- Medium, 3 days
+- Playlist and events DB storage- Medium, 2 days
 
 ## Further Work
 - Use of WebSocket server for synchronization, using chat frameworks.
@@ -59,3 +62,6 @@ Playlist and events DB storage- Medium, 2 days
 - Image sharing capability within vidroom framework?
 - Further Synchronization work:
   - Handling connectivity issues, buffering, etc.
+
+## Personal Notes
+- Explore whether or not to use YouTube API with login. YouTube API allows storage of video data.
