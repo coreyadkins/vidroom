@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
   <head>
     <meta charset="utf-8">
     <title>Vidroom</title>
-    <link rel="stylesheet" href="vidroom.css" />
+    <link rel="stylesheet" href="{% static 'vidroom/vidroom.css' %}" />
     <svg class="defs">
       <defs>
         <path id="pause-button-shape"  d="M24,0C10.745,0,0,10.745,0,24s10.745,24,24,24s24-10.745,24-24S37.255,0,24,0z M21,33.064c0,2.201-1.688,4-3.75,4
@@ -29,8 +30,14 @@
         <use xlink:href="#pause-button-shape"></use>
       </svg>
     </div>
+    <div>
+        <form>
+            <label><input type="text" name="playlistURL" placeholder="A valid YouTube URL"></label>
+            <input type="submit" name="Add to playlist">
+        </form>
+    </div>
   </body>
   <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
   <script src="http://cdn.jsdelivr.net/lodash/4.11.2/lodash.js"></script>
-  <script src="vidroom.js"></script>
+  <script src="{% static 'vidroom/vidroom.js' %}"></script>
 </html>
