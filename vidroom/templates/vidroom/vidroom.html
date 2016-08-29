@@ -19,23 +19,33 @@
     <header>
       <h1>VidRoom</h1>
     </header>
-    <div>
-      <div id="player"></div>
-    </div>
-    <div class="buttons">
-      <svg class="button" id="play-button">
-        <use xlink:href="#play-button-shape"></use>
-      </svg>
-      <svg class="button" id="pause-button">
-        <use xlink:href="#pause-button-shape"></use>
-      </svg>
-    </div>
-    <div>
-        <form>
-            <label><input type="text" name="playlistURL" placeholder="A valid YouTube URL"></label>
-            <input type="submit" name="Add to playlist">
-        </form>
-    </div>
+    <section class="body">
+      <section class="player">
+        <div>
+          <div id="player"></div>
+        </div>
+        <div class="buttons">
+          <svg class="button" id="play-button">
+            <use xlink:href="#play-button-shape"></use>
+          </svg>
+          <svg class="button" id="pause-button">
+            <use xlink:href="#pause-button-shape"></use>
+          </svg>
+        </div>
+      </section>
+      <section class="playlist">
+        <div>
+          <form>
+              <label><input type="text" name="playlistURL" placeholder="A valid YouTube URL"></label>
+              <input type="submit" name="Add to playlist">
+          </form>
+        </div>
+        <div id="playlist">
+          <ul>
+          </ul>
+        </div>
+      </section>
+    </section>
   </body>
   <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
   <script src="http://cdn.jsdelivr.net/lodash/4.11.2/lodash.js"></script>

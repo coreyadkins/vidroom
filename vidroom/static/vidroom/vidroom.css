@@ -3,6 +3,24 @@ body {
   color: white;
 }
 
+section.body {
+  display: flex;
+}
+
+
+section.player {
+    flex: 3;
+}
+
+section.playlist {
+    flex: 1;
+    background-color: black;
+}
+
+#playlist ul a {
+    color: GreenYellow;
+}
+
 header {
   display: flex;
   justify-content: center;

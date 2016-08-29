@@ -21,28 +21,18 @@ function generateUUID() {
  * @return {string} URL for creation of a new vidroom.
  */
 function createCustomURL(uuid) {
-  var baseUrl = 'http://www.vidroom.com/';
+  var baseUrl = '/';
   return baseUrl + uuid;
 }
 
-function createUrlDisplay(url) {
-  var section = $('#success');
-  section.empty();
-  var displayBody = '<div><h2>Success!</h2></div><div><p>Your private vidroom' +
-   ' is located at ' + url + '</p></div>';
-  var displayElement = $(displayBody);
-  section.append(displayElement);
-}
-
-function openVidRoom() {
-  window.open('vidroom.html');
+function openVidRoom(url) {
+  window.location.href = url
 }
 
 function createVidRoom() {
   var uuid = generateUUID();
   var url = createCustomURL(uuid);
-  createUrlDisplay(url);
-  openVidRoom();
+  openVidRoom(url);
 }
 
 
