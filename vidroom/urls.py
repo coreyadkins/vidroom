@@ -19,6 +19,7 @@ from . import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', views.get_home, name='home'),
-    url(r'^(?P<vidroom_number>.+)', views.get_vidroom, name='vidroom')
+    url(r'^$', views.render_index, name='home'),
+    url(r'^vidroom/$', views.get_new_vidroom, name='new_vidroom_redirect'),
+    url(r'^vidroom/(?P<vidroom_uuid>.+)', views.render_vidroom, name='vidroom')
 ]

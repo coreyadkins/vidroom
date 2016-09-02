@@ -12,13 +12,11 @@
         <h1>VidRoom Home</h1>
       </div>
       <div>
-        <form>
+        <form action={% url 'new_vidroom_redirect' %}method="post">
+          {% csrf_token %}
           <button name="submit">Get a VidRoom!</button>
         </form>
       </div>
-    </section>
-    <section id="success">
-
     </section>
   </body>
   <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
