@@ -12,19 +12,19 @@ class VidRoom(models.Model):
 
         >>> str(VidRoom(id='123', playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg', 'https://www.youtube.com/'\
         'watch?v=tS_uCfBX1No'], start_at=135))
-        Vidroom(123)
+        'VidRoom(123)'
         """
-        return 'Vidroom({})'.format(self.id)
+        return 'VidRoom({})'.format(self.id)
 
     def __repr__(self):
         """Returns repr.
 
-        >>> repr(VidRoom(id=123, playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg', 'https://www.youtube.com'\
+        >>> repr(VidRoom(id='123', playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg', 'https://www.youtube.com'\
         '/watch?v=tS_uCfBX1No'], start_at=135))
-        "Vidroom(id=123, playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg', 'https://www.youtube.com'\
-        '/watch?v=tS_uCfBX1No'], start_at=135)"
+        "VidRoom(id='123', playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg', 'https://www.youtube.com\
+/watch?v=tS_uCfBX1No'], start_at=135)"
         """
-        return 'Vidroom(uuid={}, playlist={!r}, start_at={})'.format(self.id, self.playlist, self.start_at)
+        return 'VidRoom(id={!r}, playlist={!r}, start_at={})'.format(self.id, self.playlist, self.start_at)
 
 
 class Event(models.Model):
@@ -34,15 +34,15 @@ class Event(models.Model):
     def __str__(self):
         """Returns str.
 
-        >>> str(Event(event_type='Play', video_time_at='135'))
-        Event(Play at 135)
+        >>> str(Event(event_type='Play', video_time_at=135))
+        'Event(Play at 135)'
         """
         return 'Event({} at {})'.format(self.event_type, self. video_time_at)
 
     def __repr__(self):
         """Returns repr.
 
-        >>> repr(Event(event_type='Pause', video_time_at='140'))
-        Event(event_type='Pause', video_time_at='140')
+        >>> repr(Event(event_type='Pause', video_time_at=140))
+        "Event(event_type='Pause', video_time_at=140)"
         """
         return 'Event(event_type={!r}, video_time_at={!r})'.format(self.event_type, self.video_time_at)
