@@ -38,6 +38,8 @@ function addToPlaylist() {
 }
 
 function initializeEventHandlers() {
+    window.prompt('VidRoom Created! Copy the URL to your clipboard to return to it at any time. Just hit Ctrl + C',
+    window.location.href)
     $('form').on('submit', function(event) {
     event.preventDefault();
     addToPlaylist();
