@@ -18,8 +18,13 @@ The linked YouTube video inputted by the user.
 
 **Playlists**
 Including:
--Videos or URLs
--order
+- Videos or URLs
+- order
+
+**Event**
+When a video is played or paused, the Database stores:
+- Event type flag which contains event name ("play, pause")
+- Timestamp which contains video play time at event
 
 **Event**
 When a video is played or paused, the Database stores:
