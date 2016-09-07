@@ -25,12 +25,14 @@
           <div id="player"></div>
         </div>
         <div class="buttons">
-          <svg class="button" id="play-button">
-            <use xlink:href="#play-button-shape"></use>
-          </svg>
-          <svg class="button" id="pause-button">
-            <use xlink:href="#pause-button-shape"></use>
-          </svg>
+            <div id="query-url" data-url="{% url 'vidroom_event_query' vidroom_id %}"></div>
+            {% csrf_token %}
+            <svg class="button" id="play-button" data-url="{% url 'vidroom_event_log' vidroom_id %}">
+                <use xlink:href="#play-button-shape"></use>
+            </svg>
+            <svg class="button" id="pause-button" data-url="{% url 'vidroom_event_log' vidroom_id %}">
+                <use xlink:href="#pause-button-shape"></use>
+            </svg>
         </div>
       </section>
       <section class="playlist">
@@ -49,5 +51,6 @@
   </body>
   <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
   <script src="http://cdn.jsdelivr.net/lodash/4.11.2/lodash.js"></script>
+  <script src="{% static 'vidroom/ajax_csrf_setup.js' %}"></script>
   <script src="{% static 'vidroom/vidroom.js' %}"></script>
 </html>

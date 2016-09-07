@@ -1,5 +1,7 @@
 'use strict';
 
+// Clean up code and add doc comments. Might be a better way to structure it.
+
 var player;
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
@@ -15,15 +17,46 @@ function onYouTubeIframeAPIReady() {
   });
 }
 
+function serverLogEvent(event_name, time, actionURL) {
+    var submitMethod = 'post'
+    var formData = {'event_type': event_name, 'video_time_at': time};
+    return Promise.resolve($.ajax({
+        dataType: 'json',
+        url: actionURL,
+        method: submitMethod,
+        data: formData
+    }));
+}
+
+function queryServerForEvents() {
+    var submitMethod = 'get'
+    var actionURL = document.getElementById("query-url").data()
+    return Promise.resolve($.ajax ({
+        dataType: 'json',
+        url: actionURL,
+        method: submitMethod
+    }));
+}
+
 function onPlayerReady(event) {
   var playButton = document.getElementById("play-button");
-  playButton.addEventListener("click", function() {
-   player.playVideo();
-  });
+  playButton.addEventListener("click", function(event) {
+   var actionURL = playButton.data()
+   var time = player.getCurrentTime();
+   serverLogEvent('play', time, actionURL).
+       then(player.playVideo);
+   )});
   var pauseButton = document.getElementById("pause-button");
   pauseButton.addEventListener("click", function() {
-    player.pauseVideo();
-  });
+   var actionURL = pauseButton.data()
+   var time = player.getCurrentTime();
+   serverLogEvent('play', time, actionURL).
+       then(player.playVideo);
+   )});
+   setInterval(queryServerForEvents, 1000).
+       then(checkIfNewEvent).
+       then(registerCommand).
+       then()
 }
 
 var tag = document.createElement('script');

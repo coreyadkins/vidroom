@@ -29,3 +29,17 @@ def find_vidroom_by_id(vidroom_id):
     VidRoom(id=UUID('f81d4fae-7dec-11d0-a765-00a0c91e6bf6'), playlist='[]', start_at=0)
     """
     return models.VidRoom.objects.get(id=vidroom_id)
+
+
+def create_and_save_new_event(event_type, video_time, vidroom_id):
+    """Takes in an event type ('pause', or 'play'), and the time of the event on the video, stores as an Event object
+    in the database.
+    """
+    new_event = models.Event(vidroom_id=vidroom_id, event_type=event_type, video_time_at=video_time)
+    new_event.save()
+    # Use Foreign key on models. Need to delete previous events if I want a single event.
+
+
+def find_event_by_id(vidroom_id):
+    """Returns the event object associated with this ID."""
+    return models.Event.objects.get(id=vidroom_id)

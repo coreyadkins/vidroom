@@ -3,7 +3,7 @@
 from django.db import models
 
 class VidRoom(models.Model):
-    id = models.UUIDField(primary_key=True)
+    public_id = models.UUIDField
     playlist = models.URLField()
     start_at = models.IntegerField()
 
@@ -28,6 +28,15 @@ class VidRoom(models.Model):
 
 
 class Event(models.Model):
+    """Event is used to store the most recent pause or play event for a particular VidRoom, so that it can be queried
+    for syncing.
+
+    Each event has the ID of the VidroomID, which ensures that the server only remembers the last event for each
+    Vidroom.
+    """
+    # Q. What to do in cases where pausing or playing happens faster than a second? This will break current model.
+    # Use Foreign Key.
+    # id = models.UUIDField(primary_key=True)
     event_type = models.TextField()
     video_time_at = models.IntegerField()
 

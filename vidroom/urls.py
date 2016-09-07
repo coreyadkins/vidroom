@@ -19,7 +19,9 @@ from . import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', views.render_index, name='home'), \
+    url(r'^$', views.render_index, name='home'),
+    url(r'^vidroom/(?P<vidroom_id>.+)/event/log$', views.register_vidroom_event, name='vidroom_event_log'),
+    url(r'^vidroom/(?P<vidroom_id>.+)/event$', views.return_vidroom_event, name='vidroom_event_query'),
     url(r'^vidroom/(?P<vidroom_id>.+)$', views.render_vidroom, name='vidroom'),
     url(r'^vidroom/$', views.get_new_vidroom, name='new_vidroom_redirect')
 ]
