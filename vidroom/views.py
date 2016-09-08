@@ -20,7 +20,7 @@ def get_new_vidroom(request):
 
 def render_vidroom(request, vidroom_id):
     """Renders the VidRoom by the inputted id number.s"""
-    vidroom = logic.find_vidroom_by_id(vidroom_id)
+    vidroom = logic.find_vidroom_by_public_id(vidroom_id)
     arguments = {
         'vidroom_id': vidroom_id
     }
