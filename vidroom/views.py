@@ -28,8 +28,13 @@ def render_vidroom(request, vidroom_id):
 
 
 def return_vidroom_event(request, vidroom_id):
-    event = logic.findevent
+    """Returns the last event associated with selected Vidroom"""
+    vidroom_events = logic.find_events_by_id(vidroom_id)
 
+    return JsonResponse()
+
+def _format_event_for_json_response(event):
+    pass
 
 def register_vidroom_event(request, vidroom_id):
     """Registers a pause or play event on the client side and stores this event in the server for later queries."""

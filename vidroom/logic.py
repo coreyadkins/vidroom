@@ -2,6 +2,7 @@
 
 import uuid
 from . import models
+import arrow
 
 def create_uuid():
     """Creates a UUID, or universally unique identifier, which will be used to identify and access the newly created
@@ -34,10 +35,11 @@ def create_and_save_new_event(event_type, video_time, vidroom_id):
     """Takes in the public id of the VidRoom the event occurred in, an event type ('pause', or 'play'), and the time of
     the event on the video, stores as an Event object in the database.
     """
-    new_event = models.Event(vidroom_id=vidroom_id, event_type=event_type, video_time_at=video_time)
+    time = arrow.utcnow()
+    new_event = models.Event(vidroom_id=vidroom_id, event_type=event_type, video_time_at=video_time, timestamp=time)
     new_event.save()
 
 
-def find_event_by_id(vidroom_id):
-    """Returns the event object associated with this Public ID."""
-    return models.Event.objects.get(public_id=vidroom_id)
+def find_events_by_id(vidroom_id):
+    """Returns all event objects associated with inputted Vidroom ID."""
+    return models.Event.objects.filter(vidroom_id=vidroom_id)
