@@ -1,9 +1,11 @@
 """vidroom Models."""
 
 from django.db import models
+import uuid
+import arrow
 
 class VidRoom(models.Model):
-    public_id = models.UUIDField
+    public_id = models.TextField(default=str(uuid.uuid4))
     playlist = models.URLField()
     start_at = models.IntegerField()
 
@@ -34,7 +36,7 @@ class Event(models.Model):
     Each event has the ID of the VidroomID, which ensures that the server only remembers the last event for each
     Vidroom.
     """
-    vidroom_id = models.ForeignKey(VidRoom)
+    vidroom = models.ForeignKey(VidRoom)
     event_type = models.TextField()
     video_time_at = models.IntegerField()
     timestamp = models.DateTimeField()
@@ -43,20 +45,23 @@ class Event(models.Model):
         """Returns str.
 
         >>> time = arrow.get('2013-05-05T12:30:45+00:00')
-        >>> str(Event(vidroom_id='123', event_type='Play', video_time_at=135, timestamp=time))
-        'Event(2013-05-05-12:30:45: Play at 135 in VidRoom 123)'
+        >>> vidroom = VidRoom(public_id='123', playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg'], start_at=135)
+        >>> str(Event(vidroom=vidroom, event_type='Play', video_time_at=135, timestamp=time))
+        'Event(2013-05-05-12:30:45: Play at 135 in Vidroom(123))'
         """
-        return 'Event({} at {} in VidRoom {})'.format(self.timestamp.format('YYYY-MM-DD-HH:mm:ss'), self.event_type,
-                                                      self. video_time_at, self.vidroom_id)
+        return 'Event({}: {} at {} in {})'.format(self.timestamp.format('YYYY-MM-DD-HH:mm:ss'), self.event_type,
+                                                      self. video_time_at, self.vidroom)
 
     def __repr__(self):
         """Returns repr.
 
         >>> time = arrow.get('2013-05-05T12:30:45+00:00')
-        >>> repr(Event(vidroom_id='123', event_type='Pause', video_time_at=140, timestamp=time))
-        "Event(vidroom_id='123', event_type='Pause', video_time_at=140, timestamp=<Arrow [2013-05-05T12:30:45+00:00]>)"
+        >>> vidroom = VidRoom(public_id='123', playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg'], start_at=135)
+        >>> repr(Event(vidroom=vidroom, event_type='Pause', video_time_at=140, timestamp=time))
+        "Event(vidroom=VidRoom(public_id='123', playlist=['https://www.youtube.com/watch?v=ORjtrEW8whg'\
+], start_at=135), event_type='Pause', video_time_at=140, timestamp=<Arrow [2013-05-05T12:30:45+00:00]>)"
         """
-        return 'Event(vidroom_id={!r}, event_type={!r}, video_time_at={!r}, timestamp={!r})'.format(self.vidroom_id,
+        return 'Event(vidroom={!r}, event_type={!r}, video_time_at={!r}, timestamp={!r})'.format(self.vidroom,
                                                                                                     self.event_type,
                                                                                                     self.video_time_at,
                                                                                                     self.timestamp)

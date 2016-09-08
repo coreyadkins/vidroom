@@ -26,20 +26,20 @@ def find_vidroom_by_public_id(vidroom_id):
 
     >>> models.VidRoom(public_id='f81d4fae-7dec-11d0-a765-00a0c91e6bf6', playlist=[], start_at=0).save()
     >>> find_vidroom_by_public_id('f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    VidRoom(public_id=UUID('f81d4fae-7dec-11d0-a765-00a0c91e6bf6'), playlist='[]', start_at=0)
+    VidRoom(public_id='f81d4fae-7dec-11d0-a765-00a0c91e6bf6'), playlist='[]', start_at=0)
     """
     return models.VidRoom.objects.get(public_id=vidroom_id)
 
 
-def create_and_save_new_event(event_type, video_time, vidroom_id):
-    """Takes in the public id of the VidRoom the event occurred in, an event type ('pause', or 'play'), and the time of
-    the event on the video, stores as an Event object in the database.
+def create_and_save_new_event(vidroom, event_type, video_time):
+    """Takes in the VidRoom the event occurred in, an event type ('pause', or 'play'), and the time of the event on the
+    video, stores as an Event object in the database.
     """
     time = arrow.utcnow()
-    new_event = models.Event(vidroom_id=vidroom_id, event_type=event_type, video_time_at=video_time, timestamp=time)
+    new_event = models.Event(vidroom=vidroom, event_type=event_type, video_time_at=video_time, timestamp=time)
     new_event.save()
 
 
-def find_events_by_id(vidroom_id):
-    """Returns all event objects associated with inputted Vidroom ID."""
-    return models.Event.objects.filter(vidroom_id=vidroom_id)
+def find_events_by_id(vidroom):
+    """Returns all event objects associated with inputted Vidroom ID, sorted in order of most recent by timestamp."""
+    return models.Event.objects.filter(vidroom=vidroom).order_by('-timestamp')

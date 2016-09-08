@@ -2,6 +2,8 @@
 
 // Clean up code and add doc comments. Might be a better way to structure it.
 
+var _mostRecentEvent = {event_type: "pause", video_time_at: 0}
+
 var player;
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
@@ -30,7 +32,7 @@ function serverLogEvent(event_name, time, actionURL) {
 
 function queryServerForEvents() {
     var submitMethod = 'get'
-    var actionURL = document.getElementById("query-url").data()
+    var actionURL = $("#query-url").data()['url']
     return Promise.resolve($.ajax ({
         dataType: 'json',
         url: actionURL,
@@ -38,25 +40,47 @@ function queryServerForEvents() {
     }));
 }
 
+function checkIfNewEvent(event) {
+    if (event.event_type === _mostRecentEvent.event_type & event.video_time_at === _mostRecentEvent.video_time_at ) {
+        return false
+    } else {
+        return true
+    }
+}
+
+function registerCommand(eventJson) {
+    var event = eventJson
+    var isNewEvent = checkIfNewEvent(eventJson)
+    if (isNewEvent) {
+        _mostRecentEvent = event
+        player.seekTo(event.video_time_at)
+        if (event.event_type === 'play') {
+        player.playVideo()
+        } else if (event.event_type === 'pause') {
+        player.pauseVideo()
+        }
+    }
+}
+
 function onPlayerReady(event) {
-  var playButton = document.getElementById("play-button");
-  playButton.addEventListener("click", function(event) {
-   var actionURL = playButton.data()
+  var playButton = $("#play-button");
+  playButton.on("click", function(event) {
+   var actionURL = playButton.data()['url']
    var time = player.getCurrentTime();
    serverLogEvent('play', time, actionURL).
        then(player.playVideo);
-   )});
-  var pauseButton = document.getElementById("pause-button");
-  pauseButton.addEventListener("click", function() {
-   var actionURL = pauseButton.data()
+   });
+  var pauseButton = $("#pause-button");
+  pauseButton.on("click", function() {
+   var actionURL = pauseButton.data()['url']
    var time = player.getCurrentTime();
    serverLogEvent('play', time, actionURL).
        then(player.playVideo);
-   )});
-   setInterval(queryServerForEvents, 1000).
-       then(checkIfNewEvent).
-       then(registerCommand).
-       then()
+   });
+   setInterval(function() {
+   queryServerForEvents().
+     then(registerCommand)
+   }, 1000)
 }
 
 var tag = document.createElement('script');
