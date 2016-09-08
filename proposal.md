@@ -11,25 +11,19 @@ Viewers of VidRoom are consistent, meaning that it is assumed all viewers of a v
 **VidRoom**- Title. Video- Shell for where the video will be shown in the page, including pause, play, volume buttons. Share- Button to copy the URL of the VidRoom page to user’s clipboard. Playlist- Displays all of the queued videos to play, with a scroll bar if the list is longer than the screen size. Each video displays as a box element with a small image preview of the video, the title of the video, a URL, and buttons to change the order of the playlist. Also contains an add button which when clicked prompts the user for a URL to add a new video to the playlist.
 
 ## Data Model
-**Video**
+**VidRoom**
 The linked YouTube video inputted by the user.
-- Unique ID
-- Title
-
-**Playlists**
-Including:
-- Videos or URLs
-- order
+- Public ID: UUID which is used in the file path to access Vidroom.
+- Playlist: List which contains URLs of videos submitted by users.
+- Play At: Video time that the video was last paused at.
 
 **Event**
 When a video is played or paused, the Database stores:
+- VidRoom ID: UUID of the Vidroom which the occurred in. One-to-many relationship.
 - Event type flag which contains event name ("play, pause")
-- Timestamp which contains video play time at event
+- Video_time_at: Video play time at event
+- Timestamp: UTC server time that the event occurred at
 
-**Event**
-When a video is played or paused, the Database stores:
-- Event type flag which contains event name ("play, pause")
-- Timestamp which contains video play time at event
 
 ## Technical Components
 Syncing of pausing and play elements will be done via storing events and communicating them with the web server via HTTP, with the client side checking for new events every interval.
