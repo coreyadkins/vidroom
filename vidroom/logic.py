@@ -3,6 +3,7 @@
 import uuid
 from . import models
 import arrow
+import datetime
 
 def create_uuid():
     """Creates a UUID, or universally unique identifier, which will be used to identify and access the newly created
@@ -35,8 +36,7 @@ def create_and_save_new_event(vidroom, event_type, video_time):
     """Takes in the VidRoom the event occurred in, an event type ('pause', or 'play'), and the time of the event on the
     video, stores as an Event object in the database.
     """
-    time = arrow.utcnow()
-    new_event = models.Event(vidroom=vidroom, event_type=event_type, video_time_at=video_time, timestamp=time)
+    new_event = models.Event(vidroom=vidroom, event_type=event_type, video_time_at=video_time)
     new_event.save()
 
 

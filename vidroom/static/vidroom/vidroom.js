@@ -21,9 +21,8 @@ function onYouTubeIframeAPIReady() {
 
 function serverLogEvent(event_name, time, actionURL) {
     var submitMethod = 'post'
-    var formData = {'event_type': event_name, 'video_time_at': time};
+    var formData = {'event_type': event_name, 'video_time': time};
     return Promise.resolve($.ajax({
-        dataType: 'json',
         url: actionURL,
         method: submitMethod,
         data: formData
@@ -48,6 +47,8 @@ function checkIfNewEvent(event) {
     }
 }
 
+// Create standard JSON data setup function.
+
 function registerCommand(eventJson) {
     var event = eventJson
     var isNewEvent = checkIfNewEvent(eventJson)
@@ -68,19 +69,23 @@ function onPlayerReady(event) {
    var actionURL = playButton.data()['url']
    var time = player.getCurrentTime();
    serverLogEvent('play', time, actionURL).
-       then(player.playVideo);
+       then(function(success) {
+       player.playVideo
+       });
    });
   var pauseButton = $("#pause-button");
   pauseButton.on("click", function() {
    var actionURL = pauseButton.data()['url']
    var time = player.getCurrentTime();
-   serverLogEvent('play', time, actionURL).
-       then(player.playVideo);
+   serverLogEvent('pause', time, actionURL).
+        then(function(success) {
+               player.playVideo
+               });
    });
    setInterval(function() {
    queryServerForEvents().
      then(registerCommand)
-   }, 1000)
+   }, 100)
 }
 
 var tag = document.createElement('script');
