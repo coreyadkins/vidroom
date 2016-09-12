@@ -59,3 +59,33 @@ def register_vidroom_event(request, vidroom_id):
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
     logic.create_and_save_new_event(vidroom, event_type, video_time)
     return HttpResponse(status=200)
+
+
+def register_playlist_add(request, vidroom_id):
+    """"""
+    url = request.POST['url']
+    vidroom = logic.find_vidroom_by_public_id(vidroom_id)
+    logic.create_and_save_new_playlist_entry(vidroom, url)
+    return HttpResponse(status=200)
+
+
+def register_playlist_remove(request, vidroom_id):
+    """"""
+    url = request.POST['url']
+    vidroom = logic.find_vidroom_by_public_id(vidroom_id)
+    logic.remove_playlist_entry(vidroom, url)
+    return HttpResponse(status=200)
+
+
+def _format_playlist_for_json_response(playlist):
+    """"""
+    return {
+        'playlist urls': playlist
+    }
+
+def return_vidroom_playlist(request, vidroom_id):
+    """"""
+    vidroom = logic.find_vidroom_by_public_id(vidroom_id)
+    vidroom_playlist = logic.find_playlist_for_vidroom(vidroom)
+    json_playlist = _format_playlist_for_json_response(vidroom_playlist)
+    return JsonResponse(json_playlist)

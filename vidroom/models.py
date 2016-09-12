@@ -64,12 +64,13 @@ class PlaylistEntry(models.Model):
     """"""
     vidroom = models.ForeignKey(VidRoom)
     url = models.URLField()
+    order = models.IntegerField(default=1)
 
     def __str__(self):
         """Returns str.
 
         >>> vidroom = VidRoom(public_id='123')
-        >>> str(PlaylistEntry(vidroom=vidroom, url='https://www.youtube.com/watch?v=4B9NtFlES4U'))
+        >>> str(PlaylistEntry(vidroom=vidroom, url='https://www.youtube.com/watch?v=4B9NtFlES4U', order=1))
         'PlaylistEntry(VidRoom(123), https://www.youtube.com/watch?v=4B9NtFlES4U)'
         """
         return 'PlaylistEntry({}, {})'.format(self.vidroom, self.url)
@@ -78,7 +79,7 @@ class PlaylistEntry(models.Model):
         """Returns repr.
 
         >>> vidroom = VidRoom(public_id='123')
-        >>> repr(PlaylistEntry(vidroom=vidroom, url='https://www.youtube.com/watch?v=4B9NtFlES4U'))
-        "PlaylistEntry(vidroom=VidRoom(public_id='123'), url='https://www.youtube.com/watch?v=4B9NtFlES4U')"
+        >>> repr(PlaylistEntry(vidroom=vidroom, url='https://www.youtube.com/watch?v=4B9NtFlES4U', order=1))
+        "PlaylistEntry(vidroom=VidRoom(public_id='123'), url='https://www.youtube.com/watch?v=4B9NtFlES4U', order=1)"
         """
-        return 'PlaylistEntry(vidroom={!r}, url={!r})'.format(self.vidroom, self.url)
+        return 'PlaylistEntry(vidroom={!r}, url={!r}, order={})'.format(self.vidroom, self.url, self.order)

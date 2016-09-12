@@ -36,20 +36,26 @@
         </div>
       </section>
       <section class="playlist">
-        <div>
-          <form>
-              <label><input type="text" name="playlistURL" placeholder="A valid YouTube URL"></label>
-              <input type="submit" name="Add to playlist">
-          </form>
-        </div>
-        <div id="playlist">
-          <ul>
-          </ul>
-        </div>
+          <h2>Playlist</h2>
+          <section class="playlistqueue">
+              <div>
+                <form action="{% url 'vidroom_playlist_add' %}" method="post"
+                      data-remove="{% url 'vidroom_playlist_remove' %}" data-query="{% url 'vidroom_playlist_query' %}">
+                    {% csrf_token %}
+                    <label><input type="text" name="playlistURL" placeholder="A valid YouTube URL"></label>
+                    <input type="submit" name="Add to playlist">
+                </form>
+              </div>
+              <div id="playlist">
+                <ul>
+                </ul>
+              </div>
+          </section>
       </section>
     </section>
   </body>
   <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
   <script src="http://cdn.jsdelivr.net/lodash/4.11.2/lodash.js"></script>
   <script src="{% static 'vidroom/ajax_csrf_setup.js' %}"></script>
   <script src="{% static 'vidroom/vidroom.js' %}"></script>
