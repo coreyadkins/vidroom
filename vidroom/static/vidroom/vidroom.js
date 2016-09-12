@@ -326,7 +326,7 @@ function initializeEventHandlers() {
         addEntryToPlaylist(playlistAddURL);
     });
     $(function () {
-    $('#playlist ul').sortable();
+        $('#playlist ul').sortable();
     });
     $('.deletebutton').on('click', function(event) {
         event.preventDefault();
