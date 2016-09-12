@@ -49,6 +49,7 @@ UI for playing of videos will be handled by the YouTube Player API. Server can s
 - Drag and drop for playlist video reordering.
 - Support for platforms outside of YouTube
 - A chat box in the VidRoom
+- Video Chatting capability
 - “Favoriting” capability on videos in playlist
 - Users, which could include functionality for:
   - Remembering “My favorites”
