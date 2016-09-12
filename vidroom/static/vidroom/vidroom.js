@@ -146,7 +146,7 @@ function windowPrompt() {
 // 5. Main
 
 /**
- * Piping function, runs through the sequence of events on a user pressing the play button.
+ * Called on user input event handler, sends a play event stamp to the server, then plays the video.
  */
 function runPlaySequence() {
     var time = player.getCurrentTime();
@@ -157,7 +157,7 @@ function runPlaySequence() {
 }
 
 /**
- * Piping function, runs through the sequence of events on a user pressing the pause button.
+ *  Called on user input event handler, sends a pause event stamp to the server, then pauses the video.
  */
 function runPauseSequence() {
     var time = player.getCurrentTime();
