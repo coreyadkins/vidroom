@@ -85,4 +85,10 @@ def register_playlist_remove(request, vidroom_id):
 
 def register_playlist_reorder(request, vidroom_id):
     """"""
-    pass
+    moved_entry_url = request.POST['url']
+    new_position = int(request.POST['new_position'])
+    vidroom = logic.find_vidroom_by_public_id(vidroom_id)
+    moved_entry = logic.find_single_playlist_entry(vidroom, moved_entry_url)
+    playlist = logic.find_playlist_for_vidroom(vidroom)
+    logic.reorder_playlist(moved_entry, new_position, playlist)
+    return HttpResponse(status=200)

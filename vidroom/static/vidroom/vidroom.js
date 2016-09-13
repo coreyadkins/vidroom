@@ -16,6 +16,7 @@ var pauseEventUrl = pauseButton.data()['url'];
 var player;
 var playlistRemUrl = $('.playlist form').data()['remove']
 var playlistReorderUrl = $('.playlist form').data()['move']
+
 /**
  * Pulls user inputted data from playlist form.
  */
@@ -138,7 +139,7 @@ function setUpYoutubePlayerScript() {
 /**
  * Updates the playlist with the newly created element.
  */
-function updatePlaylist(playlistItem) {
+function appendPlaylist(playlistItem) {
     $('ul').append(playlistItem);
 }
 
@@ -200,9 +201,7 @@ function registerServerQuery(JsonResponse) {
         $('#playlistul').empty();
         for (var i = 0; i < playlist.length; i += 1) {
              var url = playlist[i]
-             var videoID = getVideoID(url);
-             var playlistItem = createPlaylistItem(url, videoID);
-             updatePlaylist(playlistItem);
+             updatePlaylist(url)
         }
         $('.deletebutton').on('click', function(event) {
             event.preventDefault();
@@ -241,6 +240,14 @@ function registerPositionChange(entry, position) {
         method: submitMethod
     }));
 }
+
+/**
+ *
+ */
+//function getVideoInfo(id) {
+//    var submitMethod = 'get';
+//    var actionURL = playlist
+//}
 
 // 5. Main
 
@@ -295,6 +302,25 @@ function removePlaylistEntry(entry) {
     registerPlaylistRemove(url, actionURL);
 }
 
+/**
+ *
+ */
+function createAndAppendPlaylistItem(url, videoID) {
+    var playlistItem = createPlaylistItem(url, videoID);
+    appendPlaylist(playlistItem);
+}
+
+/**
+ *
+ */
+function updatePlaylist(url) {
+     var videoID = getVideoID(url);
+     createAndAppendPlaylistItem(url, videoID)
+//     getVideoInfo(videoID).
+//        then(createAndAppendPlaylistItem)
+
+}
+
 // 6. Register
 
 /**
@@ -322,13 +348,15 @@ function initializeEventHandlers() {
         addEntryToPlaylist(playlistAddURL);
     });
     $(function () {
-        $('#playlistul').sortable();
+        $('#playlistul').sortable({
+            stop: function(event, ui) {
+                var entry = $(ui.item)
+                var newPosition = ui.item.index() + 1
+                registerPositionChange(entry, newPosition)
+
+            }
+        });
     });
-    $('#playlistul').on('sortchange', function(event, ui) {
-        var entry = $(ui.helper)
-        var newPosition = ui.item.index() + 1
-        registerPositionChange(entry, newPosition)
-    })
 }
 
 $(document).ready(initializeEventHandlers);
