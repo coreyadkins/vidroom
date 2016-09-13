@@ -3,6 +3,7 @@
 import uuid
 from . import models
 import datetime
+from django.core.exceptions import MultipleObjectsReturned
 
 def create_uuid():
     """Creates a UUID, or universally unique identifier, which will be used to identify and access the newly created
@@ -73,14 +74,18 @@ timestamp=datetime.datetime(1970, 1, 1, 0, 0))
 
 def create_and_save_new_playlist_entry(vidroom, url):
     """"""
-    playlist_count = len(find_playlist_for_vidroom(vidroom))
-    new_playlist_entry = models.PlaylistEntry(vidroom=vidroom, url=url, count=playlist_count + 1)
+    vidroom_playlist = find_playlist_for_vidroom(vidroom)
+    playlist_count = len(get_urls_for_playlist(vidroom_playlist))
+    new_playlist_entry = models.PlaylistEntry(vidroom=vidroom, url=url, order=playlist_count + 1)
     new_playlist_entry.save()
 
 
 def find_single_playlist_entry(vidroom, url):
     """"""
-    return models.PlaylistEntry.get(vidroom=vidroom, url=url)
+    try:
+        return models.PlaylistEntry.objects.get(vidroom=vidroom, url=url)
+    except MultipleObjectsReturned:
+        return models.PlaylistEntry.objects.filter(vidroom=vidroom, url=url)
 
 
 def remove_playlist_entry(vidroom, url):
@@ -89,6 +94,11 @@ def remove_playlist_entry(vidroom, url):
     playlist_entry.delete()
 
 
+def get_urls_for_playlist(playlist):
+    """"""
+    return [entry.url for entry in playlist]
+
+
 def find_playlist_for_vidroom(vidroom):
     """"""
-    return models.PlaylistEntry.filter(vidroom=vidroom).order_by('order')
+    return models.PlaylistEntry.objects.filter(vidroom=vidroom).order_by('order')

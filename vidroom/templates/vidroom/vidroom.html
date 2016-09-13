@@ -25,7 +25,7 @@
           <div id="player"></div>
         </div>
         <div class="buttons">
-            <div id="query-url" data-url="{% url 'vidroom_event_query' vidroom_id %}"></div>
+            <div id="query-url" data-url="{% url 'vidroom_status_query' vidroom_id %}"></div>
             {% csrf_token %}
             <svg class="button" id="play-button" data-url="{% url 'vidroom_event_log' vidroom_id %}">
                 <use xlink:href="#play-button-shape"></use>
@@ -39,15 +39,16 @@
           <h2>Playlist</h2>
           <section class="playlistqueue">
               <div>
-                <form action="{% url 'vidroom_playlist_add' %}" method="post"
-                      data-remove="{% url 'vidroom_playlist_remove' %}" data-query="{% url 'vidroom_playlist_query' %}">
+                <form action="{% url 'vidroom_playlist_add' vidroom_id %}" method="post"
+                      data-remove="{% url 'vidroom_playlist_remove' vidroom_id %}"
+                      data-move="{% url 'vidroom_playlist_reorder' vidroom_id %}">
                     {% csrf_token %}
-                    <label><input type="text" name="playlistURL" placeholder="A valid YouTube URL"></label>
+                    <label><input id="playlistinput" type="text" placeholder="A valid YouTube URL"></label>
                     <input type="submit" name="Add to playlist">
                 </form>
               </div>
               <div id="playlist">
-                <ul>
+                <ul id="playlistul">
                 </ul>
               </div>
           </section>

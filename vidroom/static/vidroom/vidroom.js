@@ -5,23 +5,22 @@
 var _mostRecentEvent = {event_type: 'pause', video_time_at: 0};
 
 // Global variable which stores the most recent playlist obtained from a server query.
-var _mostRecentPlaylist = []
+var _mostRecentPlaylist;
 
 // 1. Input
-var eventQueryUrl = $('#query-url').data()['url'];
+var statusQueryUrl = $('#query-url').data()['url'];
 var playButton = $('#play-button');
 var pauseButton = $('#pause-button');
 var playEventUrl = playButton.data()['url'];
 var pauseEventUrl = pauseButton.data()['url'];
 var player;
 var playlistRemUrl = $('.playlist form').data()['remove']
-var playlistQueryUrl = $('.playlist form').data()['query']
-
+var playlistReorderUrl = $('.playlist form').data()['move']
 /**
  * Pulls user inputted data from playlist form.
  */
 function getPlaylistInput() {
-    return $('.playlist input').val();
+    return $('#playlistinput').val();
 }
 
 // 2. Transform
@@ -31,6 +30,20 @@ function getPlaylistInput() {
  */
 function _format_event_data_for_json(event_name, time) {
     return {'event_type': event_name, 'video_time': time};
+}
+
+/**
+ * Transforms inputted data into format acceptable by Ajax Json call.
+ */
+function _format_entry_data_for_json(url) {
+    return {'url': url}
+}
+
+/**
+ *
+ */
+function _format_reorder_data_for_json(url, position) {
+    return {'url': url, 'new_position': position}
 }
 
 /**
@@ -50,18 +63,11 @@ function checkIfNewEvent(event) {
  * is a new playlist.
  */
 function checkIfNewPlaylist(playlist) {
-    if (playlist === _mostRecentPlaylist) {
+    if (_.isEqual(playlist, _mostRecentPlaylist)) {
         return false;
     } else {
         return true;
     }
-}
-
-/**
- * Transforms inputted data into format acceptable by Ajax Json call.
- */
-function _format_entry_data_for_json(url) {
-    return {'url': url}
 }
 
 /**
@@ -118,49 +124,6 @@ function serverLogEvent(event_name, time, actionURL) {
 }
 
 /**
- * Queries the server for the most recent event associated with this VidRoom.
- */
-function queryServerForEvent() {
-    var submitMethod = 'get';
-    var actionURL = eventQueryUrl;
-    return Promise.resolve($.ajax ({
-        dataType: 'json',
-        url: actionURL,
-        method: submitMethod
-    }));
-}
-
-/**
- * Queries the server for the most recent playlist associated with this VidRoom.
- */
-function queryServerForPlaylist() {
-    var submitMethod = 'get';
-    var actionURL = playlistQueryUrl;
-        return Promise.resolve($.ajax ({
-        dataType: 'json',
-        url: actionURL,
-        method: submitMethod
-    }));
-}
-/**
- * Takes the event returned from the server query, checks if it is a new event. If it is, pauses or plays the video\
- * according to the event type of the event.
- */
-function registerServerEvent(JsonResponse) {
-    var event = JsonResponse;
-    var isNewEvent = checkIfNewEvent(event);
-    if (isNewEvent) {
-        _mostRecentEvent = event;
-        player.seekTo(event.video_time_at);
-        if (event.event_type === 'play') {
-        player.playVideo();
-        } else if (event.event_type === 'pause') {
-        player.pauseVideo();
-        }
-    }
-}
-
-/**
  * Sets up the YouTube player script which runs the code to create the YouTube player.
  *
  * This script from YouTube API Docs, https://developers.google.com/youtube/iframe_api_reference
@@ -189,24 +152,6 @@ function windowPrompt() {
 }
 
 /**
- * Takes the playlist returned from the server query, checks if it is a new playlist. If it is, updates the playlist
- * container to match the new data.
- */
-function registerServerPlaylist(JsonResponse) {
-    var playlist = JsonResponse
-    var isNewPlaylist = checkIfNewPlaylist()
-    if (isNewPlaylist) {
-        _mostRecentPlaylist = playlist
-        for (var i = 0; i < playlist.length; i += 1) {
-             var url = playlist[i].url
-             var videoID = getVideoID(url);
-             var playlistItem = createPlaylistItem(url, videoID);
-             updatePlaylist(playlistItem);
-        }
-    }
-}
-
-/**
  * Serves the url for the new playlist entry to the server to the be saved.
  */
 function registerPlaylistAdd(url, actionURL) {
@@ -218,8 +163,6 @@ function registerPlaylistAdd(url, actionURL) {
         data: formData
     }));
 }
-
-
 
 /**
  * Serves the delete request for the playlist entry to the server to be saved.
@@ -234,6 +177,70 @@ function registerPlaylistRemove(url, actionURL) {
     }));
 }
 
+/**
+ * Takes the status returned from the server query, checks if there is a new event and/or if the playlist has changed.
+ * If either are true, updates the client-side VidRoom to match the new status.
+ */
+function registerServerQuery(JsonResponse) {
+    var event = JsonResponse.event;
+    var playlist = JsonResponse.playlist;
+    var isNewEvent = checkIfNewEvent(event);
+    if (isNewEvent) {
+        _mostRecentEvent = event;
+        player.seekTo(event.video_time_at);
+        if (event.event_type === 'play') {
+        player.playVideo();
+        } else if (event.event_type === 'pause') {
+        player.pauseVideo();
+        }
+    }
+    var isNewPlaylist = checkIfNewPlaylist(playlist)
+    if (isNewPlaylist) {
+        _mostRecentPlaylist = playlist;
+        $('#playlistul').empty();
+        for (var i = 0; i < playlist.length; i += 1) {
+             var url = playlist[i]
+             var videoID = getVideoID(url);
+             var playlistItem = createPlaylistItem(url, videoID);
+             updatePlaylist(playlistItem);
+        }
+        $('.deletebutton').on('click', function(event) {
+            event.preventDefault();
+            var deleteButton = $(event.target);
+            var entry = deleteButton.parent();
+            removePlaylistEntry(entry);
+        });
+    }
+}
+
+/**
+ * Queries the server for the most recent event associated with this VidRoom.
+ */
+function queryServerForStatus() {
+    var submitMethod = 'get';
+    var actionURL = statusQueryUrl;
+    return Promise.resolve($.ajax ({
+        dataType: 'json',
+        url: actionURL,
+        method: submitMethod
+    }));
+}
+
+/**
+ *
+ */
+function registerPositionChange(entry, position) {
+    var submitMethod = 'post';
+    var actionURL = playlistReorderUrl;
+    var url = entry.children('.link').attr('href');
+    var data = _format_reorder_data_for_json(url, position)
+    return Promise.resolve($.ajax ({
+        dataType: 'json',
+        data: data,
+        url: actionURL,
+        method: submitMethod
+    }));
+}
 
 // 5. Main
 
@@ -260,24 +267,13 @@ function runPauseSequence() {
 }
 
 /**
- * Queries the server for the most recent event every 100 milliseconds, tests if this event is new and should be used,
- * runs event if necessary.
+ * Queries the server for the most recent status every 100 milliseconds, tests if either the playlist or most current
+ * event has changed, then registers whatever needed functions to update the client-side VidRoom.
  */
-function runEventQueryLoop() {
+function runStatusQueryLoop() {
     setInterval(function() {
-    queryServerForEvent().
-      then(registerServerEvent);
-    }, 100);
-}
-
-/**
- * Queries the server for the most recent form of the playlist every 100 milliseconds, tests if the playlist has been
- * changed and updates if necessary.
- */
-function runPlaylistQueryLoop() {
-    setInterval(function() {
-    queryServerForPlaylist().
-        then(registerServerPlaylist);
+    queryServerForStatus().
+      then(registerServerQuery);
     }, 100);
 }
 
@@ -294,8 +290,8 @@ function addEntryToPlaylist(playlistAddURL) {
   * Removes a entry from the playlist that has been deleted by a user clicking the deleteButton.
   */
 function removePlaylistEntry(entry) {
-    var actionURL = entry.children('.deletebutton')attr('href')
-    var url = entry..children('.link').attr('href');
+    var actionURL = entry.children('.deletebutton').attr('href');
+    var url = entry.children('.link').attr('href');
     registerPlaylistRemove(url, actionURL);
 }
 
@@ -311,7 +307,7 @@ function initializePlayerHandlers(event) {
   pauseButton.on("click", function() {
     runPauseSequence();
    });
-  runEventQueryLoop();
+  runStatusQueryLoop();
 }
 
 /**
@@ -322,17 +318,17 @@ function initializeEventHandlers() {
     setUpYoutubePlayerScript();
     $('form').on('submit', function(event) {
         event.preventDefault();
-        var playlistAddURL = event.currentTarget.attr('action');
+        var playlistAddURL = $('.playlistqueue form').attr('action');
         addEntryToPlaylist(playlistAddURL);
     });
     $(function () {
-        $('#playlist ul').sortable();
+        $('#playlistul').sortable();
     });
-    $('.deletebutton').on('click', function(event) {
-        event.preventDefault();
-        removePlaylistEntry(event.currentTarget.parent());
-    });
-    runPlaylistQueryLoop();
+    $('#playlistul').on('sortchange', function(event, ui) {
+        var entry = $(ui.helper)
+        var newPosition = ui.item.index() + 1
+        registerPositionChange(entry, newPosition)
+    })
 }
 
 $(document).ready(initializeEventHandlers);

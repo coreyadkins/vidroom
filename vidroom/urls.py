@@ -20,11 +20,11 @@ from . import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.render_index, name='home'),
+    url(r'^vidroom/(?P<vidroom_id>.+)/playlist/move$', views.register_playlist_reorder, name='vidroom_playlist_reorder'),
     url(r'^vidroom/(?P<vidroom_id>.+)/playlist/add$', views.register_playlist_add, name='vidroom_playlist_add'),
     url(r'^vidroom/(?P<vidroom_id>.+)/playlist/remove$', views.register_playlist_remove, name='vidroom_playlist_remove'),
-    url(r'^vidroom/(?P<vidroom_id>.+)/playlist$', views.return_vidroom_playlist, name='vidroom_playlist_query'),
     url(r'^vidroom/(?P<vidroom_id>.+)/event/log$', views.register_vidroom_event, name='vidroom_event_log'),
-    url(r'^vidroom/(?P<vidroom_id>.+)/event$', views.return_vidroom_event, name='vidroom_event_query'),
+    url(r'^vidroom/(?P<vidroom_id>.+)/status$', views.return_vidroom_status, name='vidroom_status_query'),
     url(r'^vidroom/(?P<vidroom_id>.+)$', views.render_vidroom, name='vidroom'),
     url(r'^vidroom/$', views.get_new_vidroom, name='new_vidroom_redirect')
 ]
