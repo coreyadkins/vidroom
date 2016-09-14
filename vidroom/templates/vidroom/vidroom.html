@@ -25,7 +25,7 @@
           <div id="player"></div>
         </div>
         <div class="buttons">
-            <div id="query-url" data-url="{% url 'vidroom_event_query' vidroom_id %}"></div>
+            <div id="query-url" data-url="{% url 'vidroom_status_query' vidroom_id %}"></div>
             {% csrf_token %}
             <svg class="button" id="play-button" data-url="{% url 'vidroom_event_log' vidroom_id %}">
                 <use xlink:href="#play-button-shape"></use>
@@ -36,20 +36,27 @@
         </div>
       </section>
       <section class="playlist">
-        <div>
-          <form>
-              <label><input type="text" name="playlistURL" placeholder="A valid YouTube URL"></label>
-              <input type="submit" name="Add to playlist">
-          </form>
-        </div>
-        <div id="playlist">
-          <ul>
-          </ul>
-        </div>
+          <h2>Playlist</h2>
+          <section class="playlistqueue">
+              <div>
+                <form action="{% url 'vidroom_playlist_add' vidroom_id %}" method="post"
+                      data-remove="{% url 'vidroom_playlist_remove' vidroom_id %}"
+                      data-move="{% url 'vidroom_playlist_reorder' vidroom_id %}">
+                    {% csrf_token %}
+                    <label><input id="playlistinput" type="text" placeholder="A valid YouTube URL"></label>
+                    <input type="submit" name="Add to playlist">
+                </form>
+              </div>
+              <div id="playlist">
+                <ul id="playlistul">
+                </ul>
+              </div>
+          </section>
       </section>
     </section>
   </body>
   <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
   <script src="http://cdn.jsdelivr.net/lodash/4.11.2/lodash.js"></script>
   <script src="{% static 'vidroom/ajax_csrf_setup.js' %}"></script>
   <script src="{% static 'vidroom/vidroom.js' %}"></script>
