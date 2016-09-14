@@ -16,6 +16,7 @@ var pauseEventUrl = pauseButton.data()['url'];
 var player;
 var playlistRemUrl = $('.playlist form').data()['remove']
 var playlistReorderUrl = $('.playlist form').data()['move']
+var currentVideo = $('#' + player.getVideoData()['video_id'])
 
 /**
  * Pulls user inputted data from playlist form.
@@ -87,7 +88,7 @@ function getVideoID(url) {
 function createPlaylistItem(url, videoID) {
     var deleteButton = '<a class="deletebutton" href="' + playlistRemUrl + '">X</a>';
     var img = '<img src="http://img.youtube.com/vi/' + videoID + '/sddefault.jpg" height="50" width="50">';
-    return $('<li>' + img + '<a class="link" href=' + url + '>Link' + deleteButton + '</a></li>');
+    return $('<li id="' + videoID + '">' + img + '<a class="link" href=' + url + '>Link' + deleteButton + '</a></li>');
 }
 
 // 4. Modify and Synchronize
@@ -106,7 +107,8 @@ function onYouTubeIframeAPIReady() {
       controls: 0
     },
     events: {
-      'onReady': initializePlayerHandlers
+      'onReady': initializePlayerHandlers,
+      'onStateChange': onPlayerStateChange
     }
   });
 }
@@ -321,7 +323,25 @@ function updatePlaylist(url) {
 
 }
 
+/**
+ *
+ */
+function serveNextVideo() {
+    var nextVideo = currentVideo.next();
+    var nextVideoID = nextVideo.attr('id');
+//    player.cueVideoById(videoId: nextVideoID, startSeconds: 0.0, suggestedQuality: 'large');
+}
+
 // 6. Register
+/**
+ *
+ */
+function onPlayerStateChange(event) {
+    if(event.data === 0) {
+    serveNextVideo();
+    }
+}
+
 
 /**
  * Sets up the event handlers for pause and play elements. Run when YouTube player is successfully set up.
