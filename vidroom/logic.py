@@ -76,7 +76,8 @@ def create_and_save_new_playlist_entry(vidroom, url):
     """"""
     vidroom_playlist = find_playlist_for_vidroom(vidroom)
     playlist_count = len(get_urls_for_playlist(vidroom_playlist))
-    new_playlist_entry = models.PlaylistEntry(vidroom=vidroom, url=url, position=playlist_count + 1)
+    position = playlist_count
+    new_playlist_entry = models.PlaylistEntry(vidroom=vidroom, url=url, position=position)
     new_playlist_entry.save()
 
 
@@ -109,20 +110,26 @@ def change_entry_position(entry, new_position):
     entry.position = new_position
     entry.save()
 
-def find_if_entry_moved_up(moved_entry, new_position):
+
+def find_if_entry_moved_up(original_position, new_position):
     """"""
-    return moved_entry.position > new_position
+    return original_position > new_position
 
 
-def reorder_playlist(moved_entry, new_position, playlist):
+def reorder_playlist(moved_entry, moved_entry_new_position, playlist):
     """"""
-    entry_moved_up = find_if_entry_moved_up(moved_entry, new_position)
+    moved_entry_orig_position = moved_entry.position
+    entry_moved_up = find_if_entry_moved_up(moved_entry_orig_position, moved_entry_new_position)
     for entry in playlist:
-        if entry.position >= new_position and entry != moved_entry:
-            original_position = entry.position
-            if entry_moved_up:
-                updated_position = original_position + 1
-            else:
+        if entry_moved_up:
+            if entry.position >= moved_entry_new_position and entry.position < moved_entry_orig_position:
+                entry_orig_position = entry.position
+                updated_position = entry_orig_position + 1
+                change_entry_position(entry, updated_position)
+        else:
+            if entry.position > moved_entry_orig_position and entry.position <= moved_entry_new_position:
+                original_position = entry.position
                 updated_position = original_position - 1
-            change_entry_position(entry, updated_position)
-    change_entry_position(moved_entry, new_position)
+                change_entry_position(entry, updated_position)
+    change_entry_position(moved_entry, moved_entry_new_position)
+

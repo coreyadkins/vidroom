@@ -64,7 +64,7 @@ class PlaylistEntry(models.Model):
     """"""
     vidroom = models.ForeignKey(VidRoom)
     url = models.URLField()
-    position = models.IntegerField(default=1)
+    position = models.IntegerField(default=0)
 
     def __str__(self):
         """Returns str.

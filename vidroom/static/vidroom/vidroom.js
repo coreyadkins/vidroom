@@ -351,7 +351,7 @@ function initializeEventHandlers() {
         $('#playlistul').sortable({
             stop: function(event, ui) {
                 var entry = $(ui.item)
-                var newPosition = ui.item.index() + 1
+                var newPosition = ui.item.index()
                 registerPositionChange(entry, newPosition)
 
             }
