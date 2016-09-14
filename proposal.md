@@ -1,4 +1,4 @@
-# Vidroom
+# VidRoom
 
 ## Product Overview
 VidRoom is a web app which allows users to create “VidRooms,” which are stored, accessible web pages which the user can distribute and access at any time. These VidRooms store a playlist of YouTube videos, submitted via a URL, which all users of the VidRoom can watch together. Pause and play controls are synchronized across the VidRoom, so that if the video is paused by one user, it is paused at the same time for all other users.
