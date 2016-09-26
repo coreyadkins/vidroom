@@ -7,16 +7,15 @@ var _mostRecentEventTime; // eslint-disable-line camelcase
 var _mostRecentPlaylist;
 
 // 1. Input
-var statusQueryUrl = $('#query-url').data().url;
-var playButton = $('#play-button');
-var pauseButton = $('#pause-button');
-var playEventUrl = playButton.data().url;
-var pauseEventUrl = pauseButton.data().url;
+var statusQueryUrl = $('.player').data().query;
+var eventRegisterUrl = $('.player').data().log;
 var player;
 var playlistRemUrl = $('.playlist form').data().remove;
 var playlistReorderUrl = $('.playlist form').data().move;
 var playlistAddURL = $('.playlistqueue form').attr('action');
 var currentVideoID;
+
+var mostRecentEventType;
 
 /**
  * Pulls user inputted data from playlist form.
@@ -297,7 +296,7 @@ function registerPositionChange(entry, position) {
  */
 function runPlaySequence() {
   var time = player.getCurrentTime();
-  serverLogEvent('play', time, playEventUrl).
+  serverLogEvent('play', time, eventRegisterUrl).
     then(function() {
       player.playVideo; // eslint-disable-line no-unused-expressions
     });
@@ -308,7 +307,7 @@ function runPlaySequence() {
  */
 function runPauseSequence() {
   var time = player.getCurrentTime();
-  serverLogEvent('pause', time, pauseEventUrl).
+  serverLogEvent('pause', time, eventRegisterUrl).
     then(function() {
       player.playVideo; // eslint-disable-line no-unused-expressions
     });
@@ -390,19 +389,21 @@ function onPlayerStateChange(event) {
   if(event.data === 0) {
     serveNextVideo();
   }
+  if (event.data === 1 & event.data !== mostRecentEventType) {
+    runPlaySequence();
+    mostRecentEventType = event.data;
+  }
+  if (event.data === 2 & event.data !== mostRecentEventType) {
+    runPauseSequence();
+    mostRecentEventType = event.data;
+  }
 }
 
 
 /**
- * Sets up the event handlers for pause and play elements. Run when YouTube player is successfully set up.
+ * Sets up the status query loop. Run when YouTube player is successfully set up.
  */
 function initializePlayerHandlers() {
-  playButton.on('click', function() {
-    runPlaySequence();
-  });
-  pauseButton.on('click', function() {
-    runPauseSequence();
-  });
   runStatusQueryLoop();
 }
 
