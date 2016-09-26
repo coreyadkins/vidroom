@@ -1,8 +1,7 @@
 'use strict';
 
-// Global variable which stores the most recent event obtained from a server query. Default event is equivalent to
-// default event created by server on creation of a new VidRoom.
-var _mostRecentEvent = {event_type: 'pause', video_time_at: 0}; // eslint-disable-line camelcase
+// Global variable which stores the most recent event obtained from a server query.
+var _mostRecentEventTime; // eslint-disable-line camelcase
 
 // Global variable which stores the most recent playlist obtained from a server query.
 var _mostRecentPlaylist;
@@ -16,6 +15,7 @@ var pauseEventUrl = pauseButton.data().url;
 var player;
 var playlistRemUrl = $('.playlist form').data().remove;
 var playlistReorderUrl = $('.playlist form').data().move;
+var playlistAddURL = $('.playlistqueue form').attr('action');
 var currentVideoID;
 
 /**
@@ -26,20 +26,38 @@ function getPlaylistInput() {
 }
 
 /**
- * Returns the next video in _mostRecentPlaylist.
+ * Returns the next video in _mostRecentPlaylist, by finding the current video
+ * position and then adding one to the position. If the current video is the
+ * last in the list, determined by testing if the next video would be undefined,
+ * returns to the beginning of the playlist.
  */
-// function findNextVideo() {
-// }
+function findNextVideo() {
+  var currentPosition = _.findIndex(_mostRecentPlaylist, currentVideoID);
+  var nextVideo = _mostRecentPlaylist[currentPosition + 1];
+  if (nextVideo === undefined) {
+    nextVideo = _mostRecentPlaylist[0];
+  }
+  return nextVideo;
+}
 
 
 // 2. Transform
 
 /**
-* Takes a Youtube URL, splits it and returns just the Video ID, which is contained at the end of the URL.
+* Takes a Youtube URL, parses it and returns the videoID, which is located under
+* the 'v' GET query parameter.
+*
+* Adapted from function by communitywiki on StackOverflow, located here: http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
  */
 function getVideoID(url) {
-  var splitUrl = url.split('=');
-  return splitUrl[1];
+  var name = 'v';
+  name = name.replace(/[\[\]]/g, '\\$&');
+  var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+    results = regex.exec(url);
+  if (!results[2]) {
+    return '';
+  }
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 /**
  * Transforms inputted event data into format acceptable by Ajax Json call.
@@ -67,8 +85,7 @@ function _formatReorderDataForJson(videoID, position) {
  * new event.
  */
 function checkIfNewEvent(event) {
-  if (event.event_type === _mostRecentEvent.event_type & event.video_time_at ===
-     _mostRecentEvent.video_time_at) {
+  if (event.timestamp === _mostRecentEventTime) {
     return false;
   } else {
     return true;
@@ -85,6 +102,13 @@ function checkIfNewPlaylist(playlist) {
   } else {
     return true;
   }
+}
+
+/**
+ *
+ */
+function getPlaylistLength() {
+  return _mostRecentPlaylist.length;
 }
 
 // 3. Create
@@ -121,15 +145,11 @@ function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
     height: '390',
     width: '90%',
     videoId: 'QH2-TGUlwu4',
-    playerVars: {
-      controls: 0
-    },
     events: {
       'onReady': initializePlayerHandlers,
       'onStateChange': onPlayerStateChange
     }
   });
-  currentVideoID = $('#' + player.getVideoData().video_id);
 }
 
 /**
@@ -176,7 +196,8 @@ function windowPrompt() {
 /**
  * Serves the url for the new playlist entry to the server to the be saved.
  */
-function registerPlaylistAdd(videoID, actionURL) {
+function registerPlaylistAdd(videoID) {
+  var actionURL = playlistAddURL;
   var submitMethod = 'post';
   var formData = _formatEntryDataForJson(videoID);
   return Promise.resolve($.ajax({
@@ -208,7 +229,7 @@ function registerServerQuery(JsonResponse) {
   var playlist = JsonResponse.playlist;
   var isNewEvent = checkIfNewEvent(event);
   if (isNewEvent) {
-    _mostRecentEvent = event;
+    _mostRecentEventTime = event.timestamp;
     player.seekTo(event.video_time_at);
     if (event.event_type === 'play') {
       player.playVideo();
@@ -221,7 +242,7 @@ function registerServerQuery(JsonResponse) {
     _mostRecentPlaylist = playlist;
     $('#playlistul').empty();
     for (var i = 0; i < playlist.length; i += 1) {
-      var videoID = playlist[i].video_id;
+      var videoID = playlist[i];
       updatePlaylist(videoID);
     }
     $('.deletebutton').on('click', function(event) {
@@ -255,7 +276,6 @@ function registerPositionChange(entry, position) {
   var videoID = entry.attr('id');
   var data = _formatReorderDataForJson(videoID, position);
   return Promise.resolve($.ajax({
-    dataType: 'json',
     data: data,
     url: actionURL,
     method: submitMethod
@@ -308,11 +328,10 @@ function runStatusQueryLoop() {
 /**
  * Piping function to add new user inputted field into the playlist.
  */
-function addEntryToPlaylist(playlistAddURL) {
-  var actionURL = playlistAddURL;
+function addEntryToPlaylist() {
   var url = getPlaylistInput();
   var videoID = getVideoID(url);
-  registerPlaylistAdd(videoID, actionURL);
+  registerPlaylistAdd(videoID);
 }
 
 /**
@@ -345,10 +364,22 @@ function updatePlaylist(videoID) {
 /**
  *
  */
+function reorderPlaylist(currentVideoID, nextVideoID) {
+  var currentVideoEntry = $('#' + currentVideoID);
+  var nextVideoEntry = $('#' + nextVideoID);
+  var bottomPosition = getPlaylistLength();
+  registerPositionChange(currentVideoEntry, bottomPosition);
+  registerPositionChange(nextVideoEntry, 0);
+}
+
+/**
+ * Finds the next video in the playlist, serves it to the YouTube API to cue up.
+ */
 function serveNextVideo() {
-  // var nextVideo = findNextVideo();
-  // var nextVideoID = nextVideo.attr('id');
-//    player.cueVideoById(videoId: nextVideoID, startSeconds: 0.0, suggestedQuality: 'large');
+  var nextVideoID = findNextVideo();
+  reorderPlaylist(currentVideoID, nextVideoID);
+  player.cueVideoById(nextVideoID, 0.0, 'large');
+  currentVideoID = nextVideoID;
 }
 
 // 6. Register
@@ -383,8 +414,7 @@ function initializeEventHandlers() {
   setUpYoutubePlayerScript();
   $('form').on('submit', function(event) {
     event.preventDefault();
-    var playlistAddURL = $('.playlistqueue form').attr('action');
-    addEntryToPlaylist(playlistAddURL);
+    addEntryToPlaylist();
   });
   $(function() {
     $('#playlistul').sortable({
