@@ -7,8 +7,8 @@ var _mostRecentEventTime; // eslint-disable-line camelcase
 var _mostRecentPlaylist;
 
 // 1. Input
-var statusQueryUrl = $('#query-url').data().url;
-var eventRegisterUrl = $('.player').data().url;
+var statusQueryUrl = $('.player').data().query;
+var eventRegisterUrl = $('.player').data().log;
 var player;
 var playlistRemUrl = $('.playlist form').data().remove;
 var playlistReorderUrl = $('.playlist form').data().move;

@@ -11,7 +11,8 @@
       <h1>VidRoom</h1>
     </header>
     <section class="body">
-      <section class="player" data-url="{% url 'vidroom_event_log' vidroom_id %}">
+      {% csrf_token %}
+      <section class="player" data-log="{% url 'vidroom_event_log' vidroom_id %}" data-query="{% url 'vidroom_status_query' vidroom_id %}">
         <div>
           <div id="player"></div>
         </div>
