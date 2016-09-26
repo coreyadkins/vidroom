@@ -15,11 +15,12 @@ def get_new_vidroom(request):
     """Creates a new VidRoom by generating a UUID, then saving a VidRoom with that UUID to the database. Then redirects
     the user to the correct URL for that VidRoom.
 
-    Creates and saves a default event of 'pause' at 0.0 on initiation of VidRoom.
+    Creates and saves a default event of 'pause' at 0.0 on initiation of VidRoom, and a default playlist entry.
     """
     vidroom_id = str(logic.create_uuid())
     vidroom = logic.create_and_save_new_vidroom(vidroom_id)
     logic.create_and_save_new_event(vidroom, 'pause', 0.0)
+    logic.create_and_save_new_playlist_entry(vidroom, 'QH2-TGUlwu4')
     return HttpResponseRedirect(vidroom_id)
 
 
@@ -43,8 +44,8 @@ def _format_status_for_json_response(event, playlist):
     ['https://www.youtube.com/watch?v=eDyEGP0FhcQ']
     """
     return {
-        'event': {'event_type': event.event_type, 'video_time_at': event.video_time_at},
-        'playlist': logic.get_urls_for_playlist(playlist)
+        'event': {'event_type': event.event_type, 'video_time_at': event.video_time_at, 'timestamp': event.timestamp},
+        'playlist': logic.get_video_ids_for_playlist(playlist)
     }
 
 
@@ -69,26 +70,26 @@ def register_vidroom_event(request, vidroom_id):
 
 def register_playlist_add(request, vidroom_id):
     """"""
-    url = request.POST['url']
+    video_id = request.POST['video_id']
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
-    logic.create_and_save_new_playlist_entry(vidroom, url)
+    logic.create_and_save_new_playlist_entry(vidroom, video_id)
     return HttpResponse(status=200)
 
 
 def register_playlist_remove(request, vidroom_id):
     """"""
-    url = request.POST['url']
+    video_id = request.POST['video_id']
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
-    logic.remove_playlist_entry(vidroom, url)
+    logic.remove_playlist_entry(vidroom, video_id)
     return HttpResponse(status=200)
 
 
 def register_playlist_reorder(request, vidroom_id):
     """"""
-    moved_entry_url = request.POST['url']
+    moved_entry_video_id = request.POST['video_id']
     new_position = int(request.POST['new_position'])
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
-    moved_entry = logic.find_single_playlist_entry(vidroom, moved_entry_url)
+    moved_entry = logic.find_single_playlist_entry(vidroom, moved_entry_video_id)
     playlist = logic.find_playlist_for_vidroom(vidroom)
     logic.reorder_playlist(moved_entry, new_position, playlist)
     return HttpResponse(status=200)

@@ -52,16 +52,17 @@ UI for playing of videos will be handled by the YouTube Player API. Server can s
 - Video Chatting capability
 - “Favoriting” capability on videos in playlist
 - Users, which could include functionality for:
-  - Remembering “My favorites”
-  - Sending invitations to VidRooms
-  - Displaying which user paused or played a video in a VidRoom
+- Remembering “My favorites”
+- Sending invitations to VidRooms
+- Displaying which user paused or played a video in a VidRoom
 - Options for users to customize their vidroom:
-  - Change name of Vidroom
-  - Change color of text, background
-  - Upload a background image.
+- Change name of Vidroom
+- Change color of text, background
+- Upload a background image.
 - Image sharing capability within vidroom framework?
 - Further Synchronization work:
-  - Handling connectivity issues, buffering, etc.
+- Handling connectivity issues, buffering, etc.
+- Be able to toggle video quality
 
 ## Personal Notes
 - Explore whether or not to use YouTube API with login. YouTube API allows storage of video data.
