@@ -18,6 +18,8 @@ var playlistReorderUrl = $('.playlist form').data().move;
 var playlistAddURL = $('.playlistqueue form').attr('action');
 var currentVideoID;
 
+var mostRecentEvent;
+
 /**
  * Pulls user inputted data from playlist form.
  */
@@ -390,19 +392,21 @@ function onPlayerStateChange(event) {
   if(event.data === 0) {
     serveNextVideo();
   }
+  if (event.data === 1 & event.data !== mostRecentEvent) {
+    runPlaySequence();
+    mostRecentEvent = event.data;
+  }
+  if (event.data === 2 & event.data !== mostRecentEvent) {
+    runPauseSequence();
+    mostRecentEvent = event.data;
+  }
 }
 
 
 /**
- * Sets up the event handlers for pause and play elements. Run when YouTube player is successfully set up.
+ * Sets up the status query loop. Run when YouTube player is successfully set up.
  */
 function initializePlayerHandlers() {
-  playButton.on('click', function() {
-    runPlaySequence();
-  });
-  pauseButton.on('click', function() {
-    runPauseSequence();
-  });
   runStatusQueryLoop();
 }
 
