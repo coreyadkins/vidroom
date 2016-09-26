@@ -16,7 +16,7 @@ var pauseEventUrl = pauseButton.data().url;
 var player;
 var playlistRemUrl = $('.playlist form').data().remove;
 var playlistReorderUrl = $('.playlist form').data().move;
-var currentVideo = $('#' + player.getVideoData().video_id);
+var currentVideoID;
 
 /**
  * Pulls user inputted data from playlist form.
@@ -25,8 +25,22 @@ function getPlaylistInput() {
   return $('#playlistinput').val();
 }
 
+/**
+ * Returns the next video in _mostRecentPlaylist.
+ */
+// function findNextVideo() {
+// }
+
+
 // 2. Transform
 
+/**
+* Takes a Youtube URL, splits it and returns just the Video ID, which is contained at the end of the URL.
+ */
+function getVideoID(url) {
+  var splitUrl = url.split('=');
+  return splitUrl[1];
+}
 /**
  * Transforms inputted event data into format acceptable by Ajax Json call.
  */
@@ -37,15 +51,15 @@ function _formatEventDataForJson(eventName, time) {
 /**
  * Transforms inputted data into format acceptable by Ajax Json call.
  */
-function _formatEntryDataForJson(url) {
-  return {'url': url};
+function _formatEntryDataForJson(videoID) {
+  return {'video_id': videoID};
 }
 
 /**
  *
  */
-function _formatReorderDataForJson(url, position) {
-  return {'url': url, 'new_position': position};
+function _formatReorderDataForJson(videoID, position) {
+  return {'video_id': videoID, 'new_position': position};
 }
 
 /**
@@ -73,20 +87,20 @@ function checkIfNewPlaylist(playlist) {
   }
 }
 
-/**
- * Takes a Youtube URL, splits it and returns just the Video ID, which is contained at the end of the URL.
- */
-function getVideoID(url) {
-  var splitUrl = url.split('=');
-  return splitUrl[1];
-}
-
 // 3. Create
+
+/**
+ *
+ */
+function createYoutubeUrl(videoID) {
+  return 'https://www.youtube.com/watch?v=' + videoID;
+}
 
 /**
  * Creates a new list item containing urls to be inserted into the playlist.
  */
-function createPlaylistItem(url, videoID) {
+function createPlaylistItem(videoID) {
+  var url = createYoutubeUrl(videoID);
   var deleteButton = '<a class="deletebutton" href="' + playlistRemUrl + '">X' +
    '</a>';
   var img = '<img src="http://img.youtube.com/vi/' + videoID + '/sddefault.jp' +
@@ -115,6 +129,7 @@ function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
       'onStateChange': onPlayerStateChange
     }
   });
+  currentVideoID = $('#' + player.getVideoData().video_id);
 }
 
 /**
@@ -161,9 +176,9 @@ function windowPrompt() {
 /**
  * Serves the url for the new playlist entry to the server to the be saved.
  */
-function registerPlaylistAdd(url, actionURL) {
+function registerPlaylistAdd(videoID, actionURL) {
   var submitMethod = 'post';
-  var formData = _formatEntryDataForJson(url);
+  var formData = _formatEntryDataForJson(videoID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -174,9 +189,9 @@ function registerPlaylistAdd(url, actionURL) {
 /**
  * Serves the delete request for the playlist entry to the server to be saved.
  */
-function registerPlaylistRemove(url, actionURL) {
+function registerPlaylistRemove(videoID, actionURL) {
   var submitMethod = 'post';
-  var formData = _formatEntryDataForJson(url);
+  var formData = _formatEntryDataForJson(videoID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -206,8 +221,8 @@ function registerServerQuery(JsonResponse) {
     _mostRecentPlaylist = playlist;
     $('#playlistul').empty();
     for (var i = 0; i < playlist.length; i += 1) {
-      var url = playlist[i];
-      updatePlaylist(url);
+      var videoID = playlist[i].video_id;
+      updatePlaylist(videoID);
     }
     $('.deletebutton').on('click', function(event) {
       event.preventDefault();
@@ -237,8 +252,8 @@ function queryServerForStatus() {
 function registerPositionChange(entry, position) {
   var submitMethod = 'post';
   var actionURL = playlistReorderUrl;
-  var url = entry.children('.link').attr('href');
-  var data = _formatReorderDataForJson(url, position);
+  var videoID = entry.attr('id');
+  var data = _formatReorderDataForJson(videoID, position);
   return Promise.resolve($.ajax({
     dataType: 'json',
     data: data,
@@ -296,7 +311,8 @@ function runStatusQueryLoop() {
 function addEntryToPlaylist(playlistAddURL) {
   var actionURL = playlistAddURL;
   var url = getPlaylistInput();
-  registerPlaylistAdd(url, actionURL);
+  var videoID = getVideoID(url);
+  registerPlaylistAdd(videoID, actionURL);
 }
 
 /**
@@ -304,24 +320,23 @@ function addEntryToPlaylist(playlistAddURL) {
   */
 function removePlaylistEntry(entry) {
   var actionURL = entry.children('.deletebutton').attr('href');
-  var url = entry.children('.link').attr('href');
-  registerPlaylistRemove(url, actionURL);
+  var videoID = entry.attr('id');
+  registerPlaylistRemove(videoID, actionURL);
 }
 
 /**
  *
  */
-function createAndAppendPlaylistItem(url, videoID) {
-  var playlistItem = createPlaylistItem(url, videoID);
+function createAndAppendPlaylistItem(videoID) {
+  var playlistItem = createPlaylistItem(videoID);
   appendPlaylist(playlistItem);
 }
 
 /**
  *
  */
-function updatePlaylist(url) {
-  var videoID = getVideoID(url);
-  createAndAppendPlaylistItem(url, videoID);
+function updatePlaylist(videoID) {
+  createAndAppendPlaylistItem(videoID);
 //     getVideoInfo(videoID).
 //        then(createAndAppendPlaylistItem)
 
@@ -331,8 +346,8 @@ function updatePlaylist(url) {
  *
  */
 function serveNextVideo() {
-  var nextVideo = currentVideo.next();
-  var nextVideoID = nextVideo.attr('id');
+  // var nextVideo = findNextVideo();
+  // var nextVideoID = nextVideo.attr('id');
 //    player.cueVideoById(videoId: nextVideoID, startSeconds: 0.0, suggestedQuality: 'large');
 }
 

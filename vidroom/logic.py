@@ -72,32 +72,32 @@ timestamp=datetime.datetime(1970, 1, 1, 0, 0))
     return models.Event.objects.filter(vidroom=vidroom).order_by('-timestamp')
 
 
-def create_and_save_new_playlist_entry(vidroom, url):
+def create_and_save_new_playlist_entry(vidroom, video_id):
     """"""
     vidroom_playlist = find_playlist_for_vidroom(vidroom)
-    playlist_count = len(get_urls_for_playlist(vidroom_playlist))
+    playlist_count = len(get_video_ids_for_playlist(vidroom_playlist))
     position = playlist_count
-    new_playlist_entry = models.PlaylistEntry(vidroom=vidroom, url=url, position=position)
+    new_playlist_entry = models.PlaylistEntry(vidroom=vidroom, video_id=video_id, position=position)
     new_playlist_entry.save()
 
 
-def find_single_playlist_entry(vidroom, url):
+def find_single_playlist_entry(vidroom, video_id):
     """"""
     try:
-        return models.PlaylistEntry.objects.get(vidroom=vidroom, url=url)
+        return models.PlaylistEntry.objects.get(vidroom=vidroom, video_id=video_id)
     except MultipleObjectsReturned:
-        return models.PlaylistEntry.objects.filter(vidroom=vidroom, url=url)
+        return models.PlaylistEntry.objects.filter(vidroom=vidroom, video_id=video_id)
 
 
-def remove_playlist_entry(vidroom, url):
+def remove_playlist_entry(vidroom, video_id):
     """"""
-    playlist_entry = find_single_playlist_entry(vidroom, url)
+    playlist_entry = find_single_playlist_entry(vidroom, video_id)
     playlist_entry.delete()
 
 
-def get_urls_for_playlist(playlist):
+def get_video_ids_for_playlist(playlist):
     """"""
-    return [entry.url for entry in playlist]
+    return [entry.video_id for entry in playlist]
 
 
 def find_playlist_for_vidroom(vidroom):

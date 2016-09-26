@@ -60,26 +60,28 @@ class Event(models.Model):
                                                                                                     self.video_time_at,
                                                                                                     self.timestamp)
 
+
 class PlaylistEntry(models.Model):
     """"""
     vidroom = models.ForeignKey(VidRoom)
-    url = models.URLField()
+    video_id = models.TextField()
     position = models.IntegerField(default=0)
 
     def __str__(self):
         """Returns str.
 
         >>> vidroom = VidRoom(public_id='123')
-        >>> str(PlaylistEntry(vidroom=vidroom, url='https://www.youtube.com/watch?v=4B9NtFlES4U', position=1))
-        'PlaylistEntry(VidRoom(123), https://www.youtube.com/watch?v=4B9NtFlES4U)'
+        >>> str(PlaylistEntry(vidroom=vidroom, video_id='4B9NtFlES4U', position=1))
+        'PlaylistEntry(VidRoom(123), 4B9NtFlES4U)'
         """
-        return 'PlaylistEntry({}, {})'.format(self.vidroom, self.url)
+        return 'PlaylistEntry({}, {})'.format(self.vidroom, self.video_id)
 
     def __repr__(self):
         """Returns repr.
 
         >>> vidroom = VidRoom(public_id='123')
-        >>> repr(PlaylistEntry(vidroom=vidroom, url='https://www.youtube.com/watch?v=4B9NtFlES4U', position=1))
-        "PlaylistEntry(vidroom=VidRoom(public_id='123'), url='https://www.youtube.com/watch?v=4B9NtFlES4U', position=1)"
+        >>> repr(PlaylistEntry(vidroom=vidroom, video_id='4B9NtFlES4U', position=1))
+        "PlaylistEntry(vidroom=VidRoom(public_id='123'), video_id='4B9NtFlES4U', position=1)"
         """
-        return 'PlaylistEntry(vidroom={!r}, url={!r}, position={})'.format(self.vidroom, self.url, self.position)
+        return 'PlaylistEntry(vidroom={!r}, video_id={!r}, position={})'.format(self.vidroom, self.video_id,
+                                                                               self.position)
