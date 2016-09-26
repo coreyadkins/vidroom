@@ -2,6 +2,7 @@
 
 // Global variable which stores the most recent event obtained from a server query.
 var _mostRecentEventTime; // eslint-disable-line camelcase
+var mostRecentEventType;
 
 // Global variable which stores the most recent playlist obtained from a server query.
 var _mostRecentPlaylist;
@@ -15,7 +16,6 @@ var playlistReorderUrl = $('.playlist form').data().move;
 var playlistAddURL = $('.playlistqueue form').attr('action');
 var currentVideoID;
 
-var mostRecentEventType;
 
 /**
  * Pulls user inputted data from playlist form.
@@ -232,8 +232,10 @@ function registerServerQuery(JsonResponse) {
     player.seekTo(event.video_time_at);
     if (event.event_type === 'play') {
       player.playVideo();
+      mostRecentEventType = 1;
     } else if (event.event_type === 'pause') {
       player.pauseVideo();
+      mostRecentEventType = 2;
     }
   }
   var isNewPlaylist = checkIfNewPlaylist(playlist);
@@ -386,16 +388,15 @@ function serveNextVideo() {
  *
  */
 function onPlayerStateChange(event) {
-  if(event.data === 0) {
+  var eventType = event.data;
+  if(eventType === 0) {
     serveNextVideo();
   }
-  if (event.data === 1 & event.data !== mostRecentEventType) {
+  if (eventType === 1 & eventType !== mostRecentEventType) {
     runPlaySequence();
-    mostRecentEventType = event.data;
   }
-  if (event.data === 2 & event.data !== mostRecentEventType) {
+  if (eventType === 2 & eventType !== mostRecentEventType) {
     runPauseSequence();
-    mostRecentEventType = event.data;
   }
 }
 
