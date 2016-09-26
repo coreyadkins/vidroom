@@ -2,7 +2,7 @@
 
 // Global variable which stores the most recent event obtained from a server query. Default event is equivalent to
 // default event created by server on creation of a new VidRoom.
-var _mostRecentEvent = {event_type: 'pause', video_time_at: 0};
+var _mostRecentEvent = {event_type: 'pause', video_time_at: 0}; // eslint-disable-line camelcase
 
 // Global variable which stores the most recent playlist obtained from a server query.
 var _mostRecentPlaylist;
@@ -102,8 +102,8 @@ function createPlaylistItem(url, videoID) {
  *
  * This script from YouTube API Docs, https://developers.google.com/youtube/iframe_api_reference
 */
-function onYouTubeIframeAPIReady() { /* global YT:"true" */
-  player = new YT.Player('player', {
+function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
+  player = new YT.Player('player', { // eslint-disable-line no-undef
     height: '390',
     width: '90%',
     videoId: 'QH2-TGUlwu4',
@@ -263,8 +263,8 @@ function registerPositionChange(entry, position) {
 function runPlaySequence() {
   var time = player.getCurrentTime();
   serverLogEvent('play', time, playEventUrl).
-    then(function(success) {
-      player.playVideo;
+    then(function() {
+      player.playVideo; // eslint-disable-line no-unused-expressions
     });
 }
 
@@ -274,8 +274,8 @@ function runPlaySequence() {
 function runPauseSequence() {
   var time = player.getCurrentTime();
   serverLogEvent('pause', time, pauseEventUrl).
-    then(function(success) {
-      player.playVideo
+    then(function() {
+      player.playVideo; // eslint-disable-line no-unused-expressions
     });
 }
 
