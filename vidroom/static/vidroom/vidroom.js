@@ -8,17 +8,14 @@ var _mostRecentPlaylist;
 
 // 1. Input
 var statusQueryUrl = $('#query-url').data().url;
-var playButton = $('#play-button');
-var pauseButton = $('#pause-button');
-var playEventUrl = playButton.data().url;
-var pauseEventUrl = pauseButton.data().url;
+var eventRegisterUrl = $('.player').data().url;
 var player;
 var playlistRemUrl = $('.playlist form').data().remove;
 var playlistReorderUrl = $('.playlist form').data().move;
 var playlistAddURL = $('.playlistqueue form').attr('action');
 var currentVideoID;
 
-var mostRecentEvent;
+var mostRecentEventType;
 
 /**
  * Pulls user inputted data from playlist form.
@@ -299,7 +296,7 @@ function registerPositionChange(entry, position) {
  */
 function runPlaySequence() {
   var time = player.getCurrentTime();
-  serverLogEvent('play', time, playEventUrl).
+  serverLogEvent('play', time, eventRegisterUrl).
     then(function() {
       player.playVideo; // eslint-disable-line no-unused-expressions
     });
@@ -310,7 +307,7 @@ function runPlaySequence() {
  */
 function runPauseSequence() {
   var time = player.getCurrentTime();
-  serverLogEvent('pause', time, pauseEventUrl).
+  serverLogEvent('pause', time, eventRegisterUrl).
     then(function() {
       player.playVideo; // eslint-disable-line no-unused-expressions
     });
@@ -392,13 +389,13 @@ function onPlayerStateChange(event) {
   if(event.data === 0) {
     serveNextVideo();
   }
-  if (event.data === 1 & event.data !== mostRecentEvent) {
+  if (event.data === 1 & event.data !== mostRecentEventType) {
     runPlaySequence();
-    mostRecentEvent = event.data;
+    mostRecentEventType = event.data;
   }
-  if (event.data === 2 & event.data !== mostRecentEvent) {
+  if (event.data === 2 & event.data !== mostRecentEventType) {
     runPauseSequence();
-    mostRecentEvent = event.data;
+    mostRecentEventType = event.data;
   }
 }
 
