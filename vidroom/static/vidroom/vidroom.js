@@ -1,19 +1,23 @@
 'use strict';
 
-// Global variable which stores the most recent event obtained from a server query.
+// Global variables which store the most recent event obtained from a server
+// query, and the type of that event corresponding to YouTube event numbering
+// system (0 is ended, 1 is playing, 2 is paused).
 var _mostRecentEventTime; // eslint-disable-line camelcase
 var mostRecentEventType;
 
-// Global variable which stores the most recent playlist obtained from a server query.
+// Global variable which stores the most recent playlist obtained from a server
+// query.
 var _mostRecentPlaylist;
 
 // 1. Input
-var statusQueryUrl = $('.player').data().query;
-var eventRegisterUrl = $('.player').data().log;
+
+var STATUS_QUERY_URL = $('.player').data().query;
+var EVENT_LOG_URL = $('.player').data().log;
+var PLAYLIST_ENTRY_ADD_URL = $('#playlistform').attr('action');
+var PLAYLIST_ENTRY_REM_URL = $('#playlistform').data().remove;
+var PLAYLIST_REORDER_URL = $('#playlistform').data().move;
 var player;
-var playlistRemUrl = $('.playlist form').data().remove;
-var playlistReorderUrl = $('.playlist form').data().move;
-var playlistAddURL = $('.playlistqueue form').attr('action');
 var currentVideoID;
 
 
@@ -22,6 +26,79 @@ var currentVideoID;
  */
 function getPlaylistInput() {
   return $('#playlistinput').val();
+}
+
+// 2. Transform
+
+/**
+* Takes a Youtube URL, parses it and returns the videoID, which is located under
+* the 'v' GET query parameter.
+*
+* Adapted from function by communitywiki on StackOverflow, located at:
+* http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+ */
+function getVideoID(url) {
+  var name = 'v';
+  name = name.replace(/[\[\]]/g, '\\$&');
+  var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+    results = regex.exec(url);
+  if (!results[2]) {
+    return '';
+  }
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+/**
+ * Transforms inputted event data into format acceptable by Ajax Json call.
+ */
+function _formatEventDataForJson(eventName, time) {
+  return {'event_type': eventName, 'video_time': time};
+}
+
+/**
+ * Transforms inputted playlist entry data into format acceptable by Ajax Json
+ * call.
+ */
+function _formatEntryDataForJson(videoID) {
+  return {'video_id': videoID};
+}
+
+/**
+ *
+ */
+function _formatReorderDataForJson(videoID, position) {
+  return {'video_id': videoID, 'new_position': position};
+}
+
+/**
+ * Checks an inputted event against the most recent event stored in global
+ * variable. Returns bool value True if it is a new event.
+ */
+function checkIfNewEvent(event) {
+  if (event.timestamp === _mostRecentEventTime) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/**
+ * Checks an inputted playlist against the most recent playlis stored in global
+ * variable. Returns bool value True if it is a new playlist.
+ */
+function checkIfNewPlaylist(playlist) {
+  if (_.isEqual(playlist, _mostRecentPlaylist)) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/**
+ * Returns the length of the current playlist.
+ */
+function getPlaylistLength() {
+  return _mostRecentPlaylist.length;
 }
 
 /**
@@ -39,77 +116,6 @@ function findNextVideo() {
   return nextVideo;
 }
 
-
-// 2. Transform
-
-/**
-* Takes a Youtube URL, parses it and returns the videoID, which is located under
-* the 'v' GET query parameter.
-*
-* Adapted from function by communitywiki on StackOverflow, located here: http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
- */
-function getVideoID(url) {
-  var name = 'v';
-  name = name.replace(/[\[\]]/g, '\\$&');
-  var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-    results = regex.exec(url);
-  if (!results[2]) {
-    return '';
-  }
-  return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
-/**
- * Transforms inputted event data into format acceptable by Ajax Json call.
- */
-function _formatEventDataForJson(eventName, time) {
-  return {'event_type': eventName, 'video_time': time};
-}
-
-/**
- * Transforms inputted data into format acceptable by Ajax Json call.
- */
-function _formatEntryDataForJson(videoID) {
-  return {'video_id': videoID};
-}
-
-/**
- *
- */
-function _formatReorderDataForJson(videoID, position) {
-  return {'video_id': videoID, 'new_position': position};
-}
-
-/**
- * Checks an inputted event against the most recent event stored in global variable. Returns bool value True if it is a
- * new event.
- */
-function checkIfNewEvent(event) {
-  if (event.timestamp === _mostRecentEventTime) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-/**
- * Checks an inputted playlist against the most recent playlis stored in global variable. Returns bool value True if it
- * is a new playlist.
- */
-function checkIfNewPlaylist(playlist) {
-  if (_.isEqual(playlist, _mostRecentPlaylist)) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-/**
- *
- */
-function getPlaylistLength() {
-  return _mostRecentPlaylist.length;
-}
-
 // 3. Create
 
 /**
@@ -124,8 +130,8 @@ function createYoutubeUrl(videoID) {
  */
 function createPlaylistItem(videoID) {
   var url = createYoutubeUrl(videoID);
-  var deleteButton = '<a class="deletebutton" href="' + playlistRemUrl + '">X' +
-   '</a>';
+  var deleteButton = '<a class="deletebutton" href="' + PLAYLIST_ENTRY_REM_URL +
+   '">X' + '</a>';
   var img = '<img src="http://img.youtube.com/vi/' + videoID + '/sddefault.jp' +
    'g" height="50" width="50">';
   return $('<li id="' + videoID + '">' + img + '<a class="link" href=' + url +
@@ -137,7 +143,11 @@ function createPlaylistItem(videoID) {
 /**
  * Sets up the YouTube iFrame player, then runs initializePlayerHandlers function.
  *
- * This script from YouTube API Docs, https://developers.google.com/youtube/iframe_api_reference
+ * Run by the YouTube API script which is imported from a separate module in the
+ * HTML.
+ *
+ * This script from YouTube API Docs,
+ * https://developers.google.com/youtube/iframe_api_reference
 */
 function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
   player = new YT.Player('player', { // eslint-disable-line no-undef
@@ -145,14 +155,15 @@ function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
     width: '90%',
     videoId: 'QH2-TGUlwu4',
     events: {
-      'onReady': initializePlayerHandlers,
-      'onStateChange': onPlayerStateChange
+      'onReady': runStatusQueryLoop, //eslint-disable-line no-use-before-define
+      'onStateChange': onPlayerStateChange //eslint-disable-line no-use-before-define
     }
   });
 }
 
 /**
- * Sends an AJAX call to the server to log each pause or play event inputted by the user.
+ * Sends an AJAX call to the server to log each pause or play event inputted by
+ * the user.
  */
 function serverLogEvent(eventName, time, actionURL) {
   var submitMethod = 'post';
@@ -165,9 +176,14 @@ function serverLogEvent(eventName, time, actionURL) {
 }
 
 /**
- * Sets up the YouTube player script which runs the code to create the YouTube player.
+ * Sets up the YouTube player script which runs the code to create the YouTube
+ * player.
  *
- * This script from YouTube API Docs, https://developers.google.com/youtube/iframe_api_reference
+ * Run by the YouTube API script which is imported from a separate module in the
+ * HTML.
+ *
+ * This script from YouTube API Docs,
+ * https://developers.google.com/youtube/iframe_api_reference
  */
 function setUpYoutubePlayerScript() {
   var tag = document.createElement('script');
@@ -185,7 +201,8 @@ function appendPlaylist(playlistItem) {
 
 
 /**
- * Creates a prompt to encourage the user to copy the path to the VidRoom to their clipboard.
+ * Creates a prompt to encourage the user to copy the path to the VidRoom to
+ * their clipboard.
  */
 function windowPrompt() {
   window.prompt('VidRoom Created! Copy the URL to your clipboard to return to' +
@@ -196,7 +213,7 @@ function windowPrompt() {
  * Serves the url for the new playlist entry to the server to the be saved.
  */
 function registerPlaylistAdd(videoID) {
-  var actionURL = playlistAddURL;
+  var actionURL = PLAYLIST_ENTRY_ADD_URL;
   var submitMethod = 'post';
   var formData = _formatEntryDataForJson(videoID);
   return Promise.resolve($.ajax({
@@ -220,8 +237,9 @@ function registerPlaylistRemove(videoID, actionURL) {
 }
 
 /**
- * Takes the status returned from the server query, checks if there is a new event and/or if the playlist has changed.
- * If either are true, updates the client-side VidRoom to match the new status.
+ * Takes the status returned from the server query, checks if there is a new
+ * event and/or if the playlist has changed. If either are true, updates the
+ * client-side VidRoom to match the new status.
  */
 function registerServerQuery(JsonResponse) {
   var event = JsonResponse.event;
@@ -232,16 +250,16 @@ function registerServerQuery(JsonResponse) {
     player.seekTo(event.video_time_at);
     if (event.event_type === 'play') {
       player.playVideo();
-      mostRecentEventType = 1;
+      mostRecentEventType = 'play';
     } else if (event.event_type === 'pause') {
       player.pauseVideo();
-      mostRecentEventType = 2;
+      mostRecentEventType = 'pause';
     }
   }
   var isNewPlaylist = checkIfNewPlaylist(playlist);
   if (isNewPlaylist) {
     _mostRecentPlaylist = playlist;
-    $('#playlistul').empty();
+    $('#playlistqueue').empty();
     for (var i = 0; i < playlist.length; i += 1) {
       var videoID = playlist[i];
       updatePlaylist(videoID);
@@ -260,7 +278,7 @@ function registerServerQuery(JsonResponse) {
  */
 function queryServerForStatus() {
   var submitMethod = 'get';
-  var actionURL = statusQueryUrl;
+  var actionURL = STATUS_QUERY_URL;
   return Promise.resolve($.ajax({
     dataType: 'json',
     url: actionURL,
@@ -271,11 +289,13 @@ function queryServerForStatus() {
 /**
  *
  */
-function registerPositionChange(entry, position) {
+function registerPositionChange(ui) {
+  var entry = $(ui.item);
+  var newPosition = ui.item.index();
   var submitMethod = 'post';
-  var actionURL = playlistReorderUrl;
+  var actionURL = PLAYLIST_REORDER_URL;
   var videoID = entry.attr('id');
-  var data = _formatReorderDataForJson(videoID, position);
+  var data = _formatReorderDataForJson(videoID, newPosition);
   return Promise.resolve($.ajax({
     data: data,
     url: actionURL,
@@ -298,7 +318,7 @@ function registerPositionChange(entry, position) {
  */
 function runPlaySequence() {
   var time = player.getCurrentTime();
-  serverLogEvent('play', time, eventRegisterUrl).
+  serverLogEvent('play', time, EVENT_LOG_URL).
     then(function() {
       player.playVideo; // eslint-disable-line no-unused-expressions
     });
@@ -309,7 +329,7 @@ function runPlaySequence() {
  */
 function runPauseSequence() {
   var time = player.getCurrentTime();
-  serverLogEvent('pause', time, eventRegisterUrl).
+  serverLogEvent('pause', time, EVENT_LOG_URL).
     then(function() {
       player.playVideo; // eslint-disable-line no-unused-expressions
     });
@@ -385,7 +405,8 @@ function serveNextVideo() {
 
 // 6. Register
 /**
- *
+ * Sets up event handlers on YouTube API to run specific sequences corresponding
+ * to the type of event.
  */
 function onPlayerStateChange(event) {
   var eventType = event.data;
@@ -400,33 +421,23 @@ function onPlayerStateChange(event) {
   }
 }
 
-
 /**
- * Sets up the status query loop. Run when YouTube player is successfully set up.
+ * Initializes page setup and event handlers on page ready.
  */
-function initializePlayerHandlers() {
-  runStatusQueryLoop();
-}
-
-/**
- * Initializes main event handlers on the page.
- */
-function initializeEventHandlers() {
+function initializeSetupAndEventHandlers() {
   windowPrompt();
   setUpYoutubePlayerScript();
-  $('form').on('submit', function(event) {
+  $('#playlistform').on('submit', function(event) {
     event.preventDefault();
     addEntryToPlaylist();
   });
   $(function() {
-    $('#playlistul').sortable({
+    $('#playlistqueue').sortable({
       stop: function(event, ui) {
-        var entry = $(ui.item);
-        var newPosition = ui.item.index();
-        registerPositionChange(entry, newPosition);
+        registerPositionChange(ui);
       }
     });
   });
 }
 
-$(document).ready(initializeEventHandlers);
+$(document).ready(initializeSetupAndEventHandlers);

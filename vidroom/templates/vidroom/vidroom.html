@@ -12,20 +12,21 @@
     </header>
     <main>
       {% csrf_token %}
-      <section class="player" data-log="{% url 'vidroom_event_log' vidroom_id %}
-      " data-query="{% url 'vidroom_status_query' vidroom_id %}">
+      <section class="player"
+      data-log="{% url 'vidroom_event_log' vidroom_id %}"
+      data-query="{% url 'vidroom_status_query' vidroom_id %}">
         <div id="player"></div>
       </section>
       <section class="playlist">
           <h2>Playlist</h2>
           <div class="playlistbody">
-              <form id="playlistform" action="{% url 'vidroom_playlist_add' vidr
-              oom_id %}" method="post" data-remove="{% url 'vidroom_playlist_rem
-              ove' vidroom_id %}" data-move="{% url 'vidroom_playlist_reorder' v
-              idroom_id %}">
+              <form id="playlistform" action=
+              "{% url 'vidroom_playlist_add' vidroom_id %}" method="post"
+              data-remove="{% url 'vidroom_playlist_remove' vidroom_id %}"
+              data-move="{% url 'vidroom_playlist_reorder' vidroom_id %}">
                   {% csrf_token %}
-                  <label><input id="playlistinput" type="text" placeholder="A va
-                          lid YouTube URL"></label>
+                  <label><input id="playlistinput" type="text"
+                    placeholder="A valid YouTube URL"></label>
                   <input type="submit" name="Add to playlist">
               </form>
               <ul id="playlistqueue">
