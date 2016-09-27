@@ -3,7 +3,12 @@ body {
   color: white;
 }
 
-section.body {
+header {
+  display: flex;
+  justify-content: center;
+}
+
+main {
   display: flex;
 }
 
@@ -16,13 +21,13 @@ section.playlist {
     flex: 1;
 }
 
-section.playlistqueue {
+div.playlistbody {
     background-color: black;
     height: 323px;
     overflow: scroll;
 }
 
-#playlist {
+#playlistqueue {
     display: flex;
     justify-content: flex-start;
 }
@@ -33,16 +38,7 @@ section.playlistqueue {
     margin: 0;
 }
 
-#playlist ul a {
-    color: GreenYellow;
-}
-
-header {
-  display: flex;
-  justify-content: center;
-}
-
-div {
+span {
   display: flex;
   justify-content: center;
 }
