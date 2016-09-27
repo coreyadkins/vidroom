@@ -62,7 +62,12 @@ class Event(models.Model):
 
 
 class PlaylistEntry(models.Model):
-    """"""
+    """Playlist Entry is used to store a single video in a playlist corresponding to a VidRoom.
+
+    video_id corresponds to the video's YouTube ID number.
+
+    Position corresponds to the entry's position in the playlist.
+    """
     vidroom = models.ForeignKey(VidRoom)
     video_id = models.TextField()
     position = models.IntegerField(default=0)

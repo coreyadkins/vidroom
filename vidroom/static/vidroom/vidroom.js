@@ -23,7 +23,7 @@ function playVideo() {
 }
 
 /**
- * Pauses teh YouTube Video.
+ * Pauses the YouTube Video.
  */
 function pauseVideo() {
   player.pauseVideo();
@@ -460,7 +460,6 @@ function initializePlaylistHandlers() {
       }
     });
   });
-
 }
 
 
@@ -538,6 +537,5 @@ function initializeSetup() {
   setUpYoutubePlayerScript();
   initializePlaylistHandlers();
 }
-
 
 $(document).ready(initializeSetup);

@@ -32,25 +32,35 @@ def render_vidroom(request, vidroom_id):
     return render(request, 'vidroom/vidroom.html', arguments)
 
 
+def get_video_ids_for_playlist(playlist):
+    """Returns a list of solely the video ID properties of a playlist."""
+    return [entry.video_id for entry in playlist]
+
+
 def _format_status_for_json_response(event, playlist):
     """Formats status data to be returned in a Json Response.
 
-    >>> event = models.Event(event_type='play', video_time_at=135.0)
-    >>> playlist = ['https://www.youtube.com/watch?v=eDyEGP0FhcQ']
+    >>> event = models.Event(event_type='play', video_time_at=135.0, timestamp=0)
+    >>> vidroom = models.VidRoom(public_id='123')
+    >>> playlist = [models.PlaylistEntry(vidroom=vidroom, video_id='4B9NtFlES4U', position=1)]
     >>> json_response = _format_status_for_json_response(event, playlist)
-    >>> json_response['event']
-    {'event_type': 'play', 'video_time_at': 135.0}
+    >>> json_response['event']['timestamp']
+    0
+    >>> json_response['event']['event_type']
+    'play'
+    >>> json_response['event']['video_time_at']
+    135.0
     >>> json_response['playlist']
-    ['https://www.youtube.com/watch?v=eDyEGP0FhcQ']
+    ['4B9NtFlES4U']
     """
     return {
         'event': {'event_type': event.event_type, 'video_time_at': event.video_time_at, 'timestamp': event.timestamp},
-        'playlist': logic.get_video_ids_for_playlist(playlist)
+        'playlist': get_video_ids_for_playlist(playlist)
     }
 
 
 def return_vidroom_status(request, vidroom_id):
-    """Returns the status of the selected VidRoom, whcih is the most recent event associated with the VidRoom and the
+    """Returns the status of the selected VidRoom, which is the most recent event associated with the VidRoom and the
     ordered playlist associated with the VidRoom."""
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
     vidroom_events = logic.find_events_by_vidroom(vidroom)
@@ -69,7 +79,7 @@ def register_vidroom_event(request, vidroom_id):
 
 
 def register_playlist_add(request, vidroom_id):
-    """"""
+    """Registers an entry added to the playlist on the client side and stores this entry in the server."""
     video_id = request.POST['video_id']
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
     logic.create_and_save_new_playlist_entry(vidroom, video_id)
@@ -77,7 +87,7 @@ def register_playlist_add(request, vidroom_id):
 
 
 def register_playlist_remove(request, vidroom_id):
-    """"""
+    """Registers removal of a playlist entry on the client side and updates the server to remove this entry."""
     video_id = request.POST['video_id']
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
     logic.remove_playlist_entry(vidroom, video_id)
@@ -85,7 +95,9 @@ def register_playlist_remove(request, vidroom_id):
 
 
 def register_playlist_reorder(request, vidroom_id):
-    """"""
+    """Registers a playlist entry changing position in the playlist, stores this new position in the server and reorders
+    the remainder of the playlist to fit around the new position of the playlist entry.
+    """
     moved_entry_video_id = request.POST['video_id']
     new_position = int(request.POST['new_position'])
     vidroom = logic.find_vidroom_by_public_id(vidroom_id)
