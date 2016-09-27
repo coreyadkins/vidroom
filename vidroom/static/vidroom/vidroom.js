@@ -1,5 +1,109 @@
 'use strict';
 
+// Youtube API Setup
+// 1. Input
+var player;
+
+// 2. Transform
+
+// 3. Create
+
+// 4. Modify and Synchronize
+/**
+ * Returns the current time on the video in the player, in seconds.
+ */
+function getVideoTime() {
+  return player.getCurrentTime();
+}
+/**
+ * Plays the YouTube Video.
+ */
+function playVideo() {
+  player.playVideo();
+}
+
+/**
+ * Pauses teh YouTube Video.
+ */
+function pauseVideo() {
+  player.pauseVideo();
+}
+
+/**
+ * Cues the inputted video by ID number.
+ */
+function cueVideo(videoID) {
+  player.cueVideoById(videoID, 0.0, 'large');
+}
+/**
+ * Seeks the video to the inputted time.
+ */
+function videoSeekTo(time) {
+  player.seekTo(time);
+}
+/**
+ * Sets up event handlers on YouTube API to run specific sequences corresponding
+ * to the type of event.
+ *
+ * Run by onYouTubeIframeAPIReady function on any video event change.
+ */
+function onPlayerStateChange(event) {
+  var videoEventType = event.data;
+  if(videoEventType === 0) {
+    serveNextVideo(); //eslint-disable-line no-use-before-define
+  }
+  if (videoEventType === 1) {
+    initializeVideoEventHandlers('play'); //eslint-disable-line no-use-before-define
+  }
+  if (videoEventType === 2) {
+    initializeVideoEventHandlers('pause'); //eslint-disable-line no-use-before-define
+  }
+}
+
+/**
+ * Sets up the YouTube iFrame player, then runs onPlayerStateChange, which
+ * handles events related to the player, and runs runStatusQueryLoop, which sets
+ * up a loop querying the server for new data.
+ *
+ * Run by the YouTube API script which is imported from a separate module in the
+ * HTML.
+ *
+ * This script from YouTube API Docs,
+ * https://developers.google.com/youtube/iframe_api_reference
+*/
+function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
+  player = new YT.Player('player', { // eslint-disable-line no-undef
+    height: '390',
+    width: '90%',
+    videoId: 'QH2-TGUlwu4',
+    events: {
+      'onReady': runStatusQueryLoop, //eslint-disable-line no-use-before-define
+      'onStateChange': onPlayerStateChange //eslint-disable-line no-use-before-define
+    }
+  });
+}
+
+/**
+ * Sets up the YouTube player script which runs the code to create the YouTube
+ * player.
+ *
+ * Run by the YouTube API script which is imported from a separate module in the
+ * HTML.
+ *
+ * This script from YouTube API Docs,
+ * https://developers.google.com/youtube/iframe_api_reference
+ */
+function setUpYoutubePlayerScript() {
+  var tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
+
+// 5. Main
+
+// 6. Register
+
 // Video Events
 // 1. Input
 var VIDEO_EVENT_LOG_URL = $('.player').data().log;
@@ -49,10 +153,10 @@ function logVideoEvent(eventType, time, actionURL) {
  * then plays the video.
  */
 function runPlaySequence() {
-  var time = getVideoTime(); // eslint-disable-line no-use-before-define
+  var time = getVideoTime();
   logVideoEvent('play', time, VIDEO_EVENT_LOG_URL).
     then(function() {
-      playVideo(); // eslint-disable-line no-use-before-define
+      playVideo();
     });
 }
 
@@ -61,10 +165,10 @@ function runPlaySequence() {
  *  then pauses the video.
  */
 function runPauseSequence() {
-  var time = getVideoTime(); // eslint-disable-line no-use-before-define
+  var time = getVideoTime();
   logVideoEvent('pause', time, VIDEO_EVENT_LOG_URL).
     then(function() {
-      pauseVideo(); // eslint-disable-line no-use-before-define
+      pauseVideo();
     });
 }
 
@@ -78,12 +182,12 @@ function registerVideoEvent(videoEvent) {
   var isNewVideoEvent = checkIfNewVideoEvent(videoEvent);
   if (isNewVideoEvent) {
     _mostRecentVideoEventTime = videoEvent.timestamp;
-    videoSeekTo(videoEvent.video_time_at); // eslint-disable-line no-use-before-define
+    videoSeekTo(videoEvent.video_time_at);
     if (videoEvent.event_type === 'play') {
-      playVideo(); // eslint-disable-line no-use-before-define
+      playVideo();
       _mostRecentVideoEventType = 'play';
     } else if (videoEvent.event_type === 'pause') {
-      pauseVideo(); // eslint-disable-line no-use-before-define
+      pauseVideo();
       _mostRecentVideoEventType = 'pause';
     }
   }
@@ -297,8 +401,18 @@ function serveNextVideo() {
   var bottomPosition = getPlaylistLength();
   logPositionChange(_currentVideoID, bottomPosition);
   logPositionChange(nextVideoID, 0);
-  cueVideo(nextVideoID); // eslint-disable-line no-use-before-define
+  cueVideo(nextVideoID);
   _currentVideoID = nextVideoID;
+}
+
+/**
+ * Called when the user moves a new video into the top of the playlist,
+ * indicating that they want to now play this video. Cues the YouTube player
+ * to play the video, then updates the global variable holding the current video.
+ */
+function serveNewVideo(newVideoID) {
+  cueVideo(newVideoID);
+  _currentVideoID = newVideoID;
 }
 
 // 6. Register
@@ -308,6 +422,9 @@ function serveNextVideo() {
  *
  * Then creates the event handler for deleting an entry, so that is refreshed
  * for each playlist update.
+ *
+ * If a new playlist entry is in the first position of the playlist, runs
+ * function to play that video
  */
 function registerPlaylist(playlist) {
   var isNewPlaylist = checkIfNewPlaylist(playlist);
@@ -319,11 +436,14 @@ function registerPlaylist(playlist) {
       var entry = deleteButton.parent();
       removePlaylistEntry(entry);
     });
+    if (_mostRecentPlaylist[0] !== _currentVideoID) {
+      serveNewVideo(_mostRecentPlaylist[0]);
+    }
   }
 }
 /**
- * Initializes Event Handlers related to the submit form and reoder item actions
- * on the playlist.
+ * Initializes Event Handlers related to the submit form and reorder item
+ * actions on the playlist..
  */
 function initializePlaylistHandlers() {
   $('#playlistform').on('submit', function(event) {
@@ -333,10 +453,10 @@ function initializePlaylistHandlers() {
   $(function() {
     $('#playlistqueue').sortable({
       stop: function(event, ui) {
-        var entry = $(ui.item);
+        var movedEntry = $(ui.item);
         var newPosition = ui.item.index();
-        var videoID = entry.attr('id');
-        logPositionChange(videoID, newPosition);
+        var movedVideoID = movedEntry.attr('id');
+        logPositionChange(movedVideoID, newPosition);
       }
     });
   });
@@ -389,110 +509,6 @@ function runStatusQueryLoop() {
       then(registerServerQuery);
   }, 100);
 }
-
-// Youtube API Setup
-// 1. Input
-var player;
-
-// 2. Transform
-
-// 3. Create
-
-// 4. Modify and Synchronize
-/**
- * Returns the current time on the video in the player, in seconds.
- */
-function getVideoTime() {
-  return player.getCurrentTime();
-}
-/**
- * Plays the YouTube Video.
- */
-function playVideo() {
-  player.playVideo();
-}
-
-/**
- * Pauses teh YouTube Video.
- */
-function pauseVideo() {
-  player.pauseVideo();
-}
-
-/**
- * Cues the inputted video by ID number.
- */
-function cueVideo(videoID) {
-  player.cueVideoById(videoID, 0.0, 'large');
-}
-/**
- * Seeks the video to the inputted time.
- */
-function videoSeekTo(time) {
-  player.seekTo(time);
-}
-/**
- * Sets up event handlers on YouTube API to run specific sequences corresponding
- * to the type of event.
- *
- * Run by onYouTubeIframeAPIReady function on any video event change.
- */
-function onPlayerStateChange(event) {
-  var videoEventType = event.data;
-  if(videoEventType === 0) {
-    serveNextVideo();
-  }
-  if (videoEventType === 1) {
-    initializeVideoEventHandlers('play');
-  }
-  if (videoEventType === 2) {
-    initializeVideoEventHandlers('pause');
-  }
-}
-
-/**
- * Sets up the YouTube iFrame player, then runs onPlayerStateChange, which
- * handles events related to the player, and runs runStatusQueryLoop, which sets
- * up a loop querying the server for new data.
- *
- * Run by the YouTube API script which is imported from a separate module in the
- * HTML.
- *
- * This script from YouTube API Docs,
- * https://developers.google.com/youtube/iframe_api_reference
-*/
-function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
-  player = new YT.Player('player', { // eslint-disable-line no-undef
-    height: '390',
-    width: '90%',
-    videoId: 'QH2-TGUlwu4',
-    events: {
-      'onReady': runStatusQueryLoop, //eslint-disable-line no-use-before-define
-      'onStateChange': onPlayerStateChange //eslint-disable-line no-use-before-define
-    }
-  });
-}
-
-/**
- * Sets up the YouTube player script which runs the code to create the YouTube
- * player.
- *
- * Run by the YouTube API script which is imported from a separate module in the
- * HTML.
- *
- * This script from YouTube API Docs,
- * https://developers.google.com/youtube/iframe_api_reference
- */
-function setUpYoutubePlayerScript() {
-  var tag = document.createElement('script');
-  tag.src = 'https://www.youtube.com/iframe_api';
-  var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-}
-
-// 5. Main
-
-// 6. Register
 
 //Main
 // 1. Input
