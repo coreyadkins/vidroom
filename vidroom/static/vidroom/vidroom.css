@@ -34,8 +34,26 @@ div.playlistbody {
   text-align: left;
 }
 
-.ui-sortable {
+#playlistqueue li {
+  display: flex;
   list-style-type: none;
   padding: 10px;
   margin: 0;
+  align-items: center;
+}
+
+#playlistqueue li img {
+  margin-right: 20px;
+}
+
+#playlistqueue li span {
+  flex: 2;
+}
+
+#playlistqueue li .deletebutton {
+  flex: 1;
+  margin-left: 10px;
+}
+
+.ui-sortable {
 }

@@ -298,14 +298,15 @@ function createYoutubeUrl(videoID) {
  * a thumbnail preview image, and a link to a video url to be inserted into the
  * playlist.
  */
-function createPlaylistItem(videoID, entryID) {
+function createPlaylistItem(videoID, entryID, title) {
   var url = createYoutubeUrl(videoID);
   var deleteButton = '<a class="deletebutton" href="' + PLAYLIST_ENTRY_REM_URL +
    '">X' + '</a>';
   var img = '<img src="http://img.youtube.com/vi/' + videoID + '/sddefault.jp' +
    'g" height="50" width="50">';
   return $('<li id="' + videoID + '" data-id="' + entryID + '">' + img +
-    '<a class="link" href=' + url + '>Link' + deleteButton + '</a></li>');
+          '<span>' + title + '</span><a class="link" href=' + url + '>Link' +
+          '</a>' + deleteButton + '</li>');
 }
 
 // 4. Modify and Synchronize
@@ -315,6 +316,23 @@ function createPlaylistItem(videoID, entryID) {
 function appendPlaylist(playlistItem) {
   $('ul').append(playlistItem);
 }
+
+/**
+ * Sends a request to the YouTube Data API to retrieve the title of the YouTube
+ * video.
+ */
+function retrieveVideoTitle(videoID) {
+  var actionURL = 'https://www.googleapis.com/youtube/v3/videos?id=' + videoID +
+                '&key=' + GOOGLE_API_KEY + '&fields=items(snippet(title))&par' + //eslint-disable-line no-undef
+                't=snippet';
+  var submitMethod = 'get';
+  return Promise.resolve($.ajax({
+    url: actionURL,
+    method: submitMethod
+  }));
+}
+
+
 /**
  * Logs a new playlist entry to the server.
  */
@@ -358,11 +376,21 @@ function logPositionChange(videoID, entryID, newPosition) {
 
 // 5. Main
 /**
- * Creates a new playlist element and updates it to the playlist.
+ * Creates a new playlist element and updates it to the playlist. Runs function
+ * which sets up the delete button handler on the entry.
  */
 function updatePlaylistDisplay(videoID, entryID) {
-  var playlistItem = createPlaylistItem(videoID, entryID);
-  appendPlaylist(playlistItem);
+  retrieveVideoTitle(videoID).
+    then(function(jsonResponse) {
+      var title = jsonResponse.items[0].snippet.title;
+      var playlistItem = createPlaylistItem(videoID, entryID, title);
+      appendPlaylist(playlistItem);
+      var entry = $('#' + videoID);
+      initializeDeleteButtonHandler(entry); //eslint-disable-line no-use-before-define
+      if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
+        serveNewVideo(_mostRecentPlaylist[0].video_id); //eslint-disable-line no-use-before-define
+      }
+    });
 }
 
 /**
@@ -428,6 +456,18 @@ function serveNewVideo(newVideoID) {
 
 // 6. Register
 /**
+ * Called on each entry each time the playlist is updated, sets up event handler
+ * to send delete log to the server on user click of the delete button.
+ */
+function initializeDeleteButtonHandler(entry) {
+  entry.children('.deletebutton').on('click', function(event) {
+    event.preventDefault();
+    removePlaylistEntry(entry);
+  });
+}
+
+
+/**
  * Takes in the playlist returned by the server query, detects if it is a new
  * playlist, if it is, runs the main to update the playlist.
  *
@@ -441,15 +481,6 @@ function registerPlaylist(playlist) {
   var isNewPlaylist = checkIfNewPlaylist(playlist);
   if (isNewPlaylist) {
     updatePlaylist(playlist);
-    $('.deletebutton').on('click', function(event) {
-      event.preventDefault();
-      var deleteButton = $(event.target);
-      var entry = deleteButton.parent();
-      removePlaylistEntry(entry);
-    });
-    if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
-      serveNewVideo(_mostRecentPlaylist[0].video_id);
-    }
   }
 }
 /**
