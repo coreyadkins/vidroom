@@ -19,3 +19,6 @@ mediafiles
 
 # macOS
 .DS_Store
+
+# Keys
+.keys.js
