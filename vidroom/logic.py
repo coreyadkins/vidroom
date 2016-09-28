@@ -3,7 +3,6 @@
 import uuid
 from . import models
 import datetime
-from django.core.exceptions import MultipleObjectsReturned
 
 
 def create_uuid():
@@ -50,7 +49,8 @@ def create_and_save_new_event(vidroom, event_type, video_time):
     Event(vidroom=VidRoom(public_id='f81d4fae-7dec-11d0-a765-00a0c91e6bf6'), event_type='play', video_time_at=135.0, \
 timestamp=datetime.datetime(1970, 1, 1, 0, 0))
     """
-    new_event = models.Event(vidroom=vidroom, event_type=event_type, video_time_at=video_time)
+    timestamp = datetime.datetime.utcnow()
+    new_event = models.Event(vidroom=vidroom, event_type=event_type, video_time_at=video_time, timestamp=timestamp)
     new_event.save()
 
 
@@ -59,14 +59,11 @@ def find_events_by_vidroom(vidroom):
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    >>> models.Event(vidroom=vidroom, event_type='play', video_time_at=135.0).save()
-    >>> result = list(find_events_by_vidroom(vidroom))
-    >>> default_time = datetime.datetime(1970, 1, 1, 0, 0, 0)
-    >>> result_event = result[0]
-    >>> result_event.timestamp = default_time
-    >>> result_event
-    Event(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), event_type='play', video_time_at=135.0, \
-timestamp=datetime.datetime(1970, 1, 1, 0, 0))
+    >>> time = datetime.datetime(1970, 1, 1, 0, 0, 0)
+    >>> models.Event(vidroom=vidroom, event_type='play', video_time_at=135.0, timestamp=time).save()
+    >>> find_events_by_vidroom(vidroom)
+    <QuerySet [Event(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), event_type='play', video_time_a\
+t=135.0, timestamp=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>))]>
     """
     return models.Event.objects.filter(vidroom=vidroom).order_by('-timestamp')
 

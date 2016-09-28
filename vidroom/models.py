@@ -35,7 +35,7 @@ class Event(models.Model):
     vidroom = models.ForeignKey(VidRoom)
     event_type = models.TextField()
     video_time_at = models.FloatField()
-    timestamp = models.DateTimeField(auto_now_add=True, auto_now=False)
+    timestamp = models.DateTimeField()
 
     def __str__(self):
         """Returns str.
@@ -56,9 +56,9 @@ class Event(models.Model):
 3, 5, 5, 12, 30, 45))"
         """
         return 'Event(vidroom={!r}, event_type={!r}, video_time_at={!r}, timestamp={!r})'.format(self.vidroom,
-                                                                                                    self.event_type,
-                                                                                                    self.video_time_at,
-                                                                                                    self.timestamp)
+                                                                                                 self.event_type,
+                                                                                                 self.video_time_at,
+                                                                                                 self.timestamp)
 
 
 class PlaylistEntry(models.Model):
@@ -70,7 +70,7 @@ class PlaylistEntry(models.Model):
     """
     vidroom = models.ForeignKey(VidRoom)
     video_id = models.TextField()
-    position = models.IntegerField(default=0)
+    position = models.IntegerField()
 
     def __str__(self):
         """Returns str.
