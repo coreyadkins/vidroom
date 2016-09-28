@@ -249,6 +249,15 @@ function _formatReorderDataForJson(videoID, entryID, position) {
 }
 
 /**
+ * Uses RegExp to test if inputted URL is a valid YouTube URL, if it is, returns
+ * true, else, returns false.
+ */
+function checkIfValidYouTubeURL(url) {
+  var regex = new RegExp(/(http|https):\/\/www\.youtube\.com\/watch\?v=.+/g);
+  return regex.test(url);
+}
+
+/**
 * Takes a Youtube URL, parses it and returns the videoID, which is located under
 * the 'v' GET query parameter.
 *
@@ -427,8 +436,13 @@ function updatePlaylist(playlist) {
  */
 function addPlaylistEntry() {
   var url = getPlaylistInput();
-  var videoID = getVideoID(url);
-  logPlaylistAdd(videoID);
+  var isValidYouTubeURL = checkIfValidYouTubeURL(url);
+  if (isValidYouTubeURL) {
+    var videoID = getVideoID(url);
+    logPlaylistAdd(videoID);
+  } else {
+    alert('Please insert only a valid YouTube URL!');
+  }
 }
 /**
   * Called when user deletes a playlist entry via the delete button. Logs this
