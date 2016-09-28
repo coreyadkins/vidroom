@@ -448,7 +448,7 @@ function registerPlaylist(playlist) {
       removePlaylistEntry(entry);
     });
     if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
-      serveNewVideo(_mostRecentPlaylist[0]);
+      serveNewVideo(_mostRecentPlaylist[0].video_id);
     }
   }
 }
