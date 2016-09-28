@@ -49,7 +49,7 @@ def get_video_ids_and_ids_for_playlist(playlist):
     >>> converted_playlist[1]['id']
     1
     """
-    return [{'video_id': entry.video_id, 'id': entry.id} for entry in playlist]
+    return [{'video_id': entry.video_id, 'id': entry.id, 'position': entry.position} for entry in playlist]
 
 
 def _format_status_for_json_response(event, playlist):

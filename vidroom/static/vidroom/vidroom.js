@@ -376,36 +376,48 @@ function logPositionChange(videoID, entryID, newPosition) {
 
 // 5. Main
 /**
+ * Submits AJAX API requests for all of the video titles in the playlist,
+ * appends promises for these into an array that it returns.
+ */
+function retrieveAllVideoTitles() {
+  var videoTitles = [];
+  for (var i = 0; i < _mostRecentPlaylist.length; i += 1) {
+    videoTitles.push(retrieveVideoTitle(_mostRecentPlaylist[i].video_id));
+  }
+  return videoTitles;
+}
+
+/**
  * Creates a new playlist element and updates it to the playlist. Runs function
  * which sets up the delete button handler on the entry.
  */
-function updatePlaylistDisplay(videoID, entryID) {
-  retrieveVideoTitle(videoID).
-    then(function(jsonResponse) {
-      var title = jsonResponse.items[0].snippet.title;
-      var playlistItem = createPlaylistItem(videoID, entryID, title);
-      appendPlaylist(playlistItem);
-      var entry = $('#' + videoID);
-      initializeDeleteButtonHandler(entry); //eslint-disable-line no-use-before-define
-      if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
-        serveNewVideo(_mostRecentPlaylist[0].video_id); //eslint-disable-line no-use-before-define
-      }
-    });
+function updatePlaylistDisplay(videoID, entryID, title) {
+  var playlistItem = createPlaylistItem(videoID, entryID, title);
+  appendPlaylist(playlistItem);
+  var entry = $('#' + videoID);
+  initializeDeleteButtonHandler(entry); //eslint-disable-line no-use-before-define
 }
 
 /**
  * Called when a new (or newly ordered) playlist is received, sets this playlist
  * as most recent, clears the current DOM displayed playlist, and repopulates
  * with the new playlist.
+ *
+ * First fulfills all promises to retrieve video titles from YouTube Data API to
+ * ensure items are appended in the correct order.
  */
 function updatePlaylist(playlist) {
   _mostRecentPlaylist = playlist;
   $('#playlistqueue').empty();
-  for (var i = 0; i < playlist.length; i += 1) {
-    var videoID = playlist[i].video_id;
-    var entryID = playlist[i].id;
-    updatePlaylistDisplay(videoID, entryID);
-  }
+  Promise.all(retrieveAllVideoTitles()).
+    then(function(jsonResponseArray) {
+      for (var i = 0; i < playlist.length; i += 1) {
+        var title = jsonResponseArray[i].items[0].snippet.title;
+        var videoID = playlist[i].video_id;
+        var entryID = playlist[i].id;
+        updatePlaylistDisplay(videoID, entryID, title);
+      }
+    });
 }
 
 
@@ -471,16 +483,19 @@ function initializeDeleteButtonHandler(entry) {
  * Takes in the playlist returned by the server query, detects if it is a new
  * playlist, if it is, runs the main to update the playlist.
  *
- * Then creates the event handler for deleting an entry, so that is refreshed
- * for each playlist update.
+ * Then tests if the first entry has changed, and if so, cues up the new video.
  *
  * If a new playlist entry is in the first position of the playlist, runs
  * function to play that video
  */
 function registerPlaylist(playlist) {
+  playlist = _.sortBy(playlist, 'position');
   var isNewPlaylist = checkIfNewPlaylist(playlist);
   if (isNewPlaylist) {
     updatePlaylist(playlist);
+    if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
+      serveNewVideo(_mostRecentPlaylist[0].video_id);
+    }
   }
 }
 /**
