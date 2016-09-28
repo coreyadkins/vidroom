@@ -85,8 +85,8 @@ class PlaylistEntry(models.Model):
         """Returns repr.
 
         >>> vidroom = VidRoom(public_id='123')
-        >>> repr(PlaylistEntry(vidroom=vidroom, video_id='4B9NtFlES4U', position=1))
-        "PlaylistEntry(vidroom=VidRoom(public_id='123'), video_id='4B9NtFlES4U', position=1)"
+        >>> repr(PlaylistEntry(vidroom=vidroom, video_id='4B9NtFlES4U', position=1, id=0))
+        "PlaylistEntry(vidroom=VidRoom(public_id='123'), video_id='4B9NtFlES4U', position=1, id=0)"
         """
-        return 'PlaylistEntry(vidroom={!r}, video_id={!r}, position={})'.format(self.vidroom, self.video_id,
-                                                                               self.position)
+        return 'PlaylistEntry(vidroom={!r}, video_id={!r}, position={}, id={!r})'.format(self.vidroom, self.video_id,
+                                                                                         self.position, self.id)

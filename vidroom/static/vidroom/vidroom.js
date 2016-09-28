@@ -73,7 +73,7 @@ function onPlayerStateChange(event) {
 */
 function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
   player = new YT.Player('player', { // eslint-disable-line no-undef
-    height: '390',
+    height: '600',
     width: '90%',
     videoId: 'QH2-TGUlwu4',
     events: {
@@ -225,19 +225,27 @@ function getPlaylistInput() {
 
 // 2. Transform
 /**
- * Transforms inputted playlist entry data into format acceptable by Ajax Json
- * call.
+ * Transforms inputted playlist entry add data into format acceptable by Ajax
+ * Json call.
  */
-function _formatEntryDataForJson(videoID) {
+function _formatEntryAddDataForJson(videoID) {
   return {'video_id': videoID};
+}
+
+/**
+ * Transforms inputted playlist entry remove data into format acceptable by Ajax
+ * Json call.
+ */
+function _formatEntryRemoveDataForJson(videoID, entryID) {
+  return {'video_id': videoID, 'id': entryID};
 }
 
 /**
  * Transforms inputted playlist entry move data into format acceptable by Ajax
  * Json call.
  */
-function _formatReorderDataForJson(videoID, position) {
-  return {'video_id': videoID, 'new_position': position};
+function _formatReorderDataForJson(videoID, entryID, position) {
+  return {'video_id': videoID, 'id': entryID, 'new_position': position};
 }
 
 /**
@@ -290,14 +298,14 @@ function createYoutubeUrl(videoID) {
  * a thumbnail preview image, and a link to a video url to be inserted into the
  * playlist.
  */
-function createPlaylistItem(videoID) {
+function createPlaylistItem(videoID, entryID) {
   var url = createYoutubeUrl(videoID);
   var deleteButton = '<a class="deletebutton" href="' + PLAYLIST_ENTRY_REM_URL +
    '">X' + '</a>';
   var img = '<img src="http://img.youtube.com/vi/' + videoID + '/sddefault.jp' +
    'g" height="50" width="50">';
-  return $('<li id="' + videoID + '">' + img + '<a class="link" href=' + url +
-   '>Link' + deleteButton + '</a></li>');
+  return $('<li id="' + videoID + '" data-id="' + entryID + '">' + img +
+    '<a class="link" href=' + url + '>Link' + deleteButton + '</a></li>');
 }
 
 // 4. Modify and Synchronize
@@ -313,7 +321,7 @@ function appendPlaylist(playlistItem) {
 function logPlaylistAdd(videoID) {
   var actionURL = PLAYLIST_ENTRY_ADD_URL;
   var submitMethod = 'post';
-  var formData = _formatEntryDataForJson(videoID);
+  var formData = _formatEntryAddDataForJson(videoID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -324,9 +332,9 @@ function logPlaylistAdd(videoID) {
 /**
  * Logs deletion of a playlist entry to the server.
  */
-function logPlaylistRemove(videoID, actionURL) {
+function logPlaylistRemove(videoID, entryID, actionURL) {
   var submitMethod = 'post';
-  var formData = _formatEntryDataForJson(videoID);
+  var formData = _formatEntryRemoveDataForJson(videoID, entryID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -337,10 +345,10 @@ function logPlaylistRemove(videoID, actionURL) {
 /**
  * Logs a playlist entry changing position to the server.
  */
-function logPositionChange(videoID, newPosition) {
+function logPositionChange(videoID, entryID, newPosition) {
   var submitMethod = 'post';
   var actionURL = PLAYLIST_REORDER_URL;
-  var data = _formatReorderDataForJson(videoID, newPosition);
+  var data = _formatReorderDataForJson(videoID, entryID, newPosition);
   return Promise.resolve($.ajax({
     data: data,
     url: actionURL,
@@ -352,8 +360,8 @@ function logPositionChange(videoID, newPosition) {
 /**
  * Creates a new playlist element and updates it to the playlist.
  */
-function updatePlaylistDisplay(videoID) {
-  var playlistItem = createPlaylistItem(videoID);
+function updatePlaylistDisplay(videoID, entryID) {
+  var playlistItem = createPlaylistItem(videoID, entryID);
   appendPlaylist(playlistItem);
 }
 
@@ -366,8 +374,9 @@ function updatePlaylist(playlist) {
   _mostRecentPlaylist = playlist;
   $('#playlistqueue').empty();
   for (var i = 0; i < playlist.length; i += 1) {
-    var videoID = playlist[i];
-    updatePlaylistDisplay(videoID);
+    var videoID = playlist[i].video_id;
+    var entryID = playlist[i].id;
+    updatePlaylistDisplay(videoID, entryID);
   }
 }
 
@@ -388,7 +397,8 @@ function addPlaylistEntry() {
 function removePlaylistEntry(entry) {
   var actionURL = entry.children('.deletebutton').attr('href');
   var videoID = entry.attr('id');
-  logPlaylistRemove(videoID, actionURL);
+  var entryID = entry.data().id;
+  logPlaylistRemove(videoID, entryID, actionURL);
 }
 
 /**
@@ -397,10 +407,11 @@ function removePlaylistEntry(entry) {
  * the next video, then updates the global variable holding the current video.
  */
 function serveNextVideo() {
-  var nextVideoID = _mostRecentPlaylist[1];
+  var nextVideoID = _mostRecentPlaylist[1].video_id;
+  var nextEntryID = _mostRecentPlaylist[1].id;
   var bottomPosition = getPlaylistLength();
-  logPositionChange(_currentVideoID, bottomPosition);
-  logPositionChange(nextVideoID, 0);
+  logPositionChange(_currentVideoID, nextEntryID, bottomPosition);
+  logPositionChange(nextVideoID, nextEntryID, 0);
   cueVideo(nextVideoID);
   _currentVideoID = nextVideoID;
 }
@@ -436,7 +447,7 @@ function registerPlaylist(playlist) {
       var entry = deleteButton.parent();
       removePlaylistEntry(entry);
     });
-    if (_mostRecentPlaylist[0] !== _currentVideoID) {
+    if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
       serveNewVideo(_mostRecentPlaylist[0]);
     }
   }
@@ -456,7 +467,8 @@ function initializePlaylistHandlers() {
         var movedEntry = $(ui.item);
         var newPosition = ui.item.index();
         var movedVideoID = movedEntry.attr('id');
-        logPositionChange(movedVideoID, newPosition);
+        var movedEntryID = movedEntry.data().id;
+        logPositionChange(movedVideoID, movedEntryID, newPosition);
       }
     });
   });

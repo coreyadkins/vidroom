@@ -77,9 +77,9 @@ def create_and_save_new_playlist_entry(vidroom, video_id):
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    >>> create_and_save_new_playlist_entry(vidroom, '1')
-    >>> models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1')
-    PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=0)
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
+    >>> models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1', id=0)
+    PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=0, id=0)
     """
     vidroom_playlist = find_playlist_for_vidroom(vidroom)
     playlist_count = len(vidroom_playlist)
@@ -88,32 +88,29 @@ def create_and_save_new_playlist_entry(vidroom, video_id):
     new_playlist_entry.save()
 
 
-def find_single_playlist_entry(vidroom, video_id):
+def find_single_playlist_entry(vidroom, video_id, entry_id):
     """Returns a single playlist entry.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0).save()
-    >>> find_single_playlist_entry(vidroom, '1')
-    PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=0)
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
+    >>> find_single_playlist_entry(vidroom, '1', 0)
+    PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=0, id=0)
     """
-    try:
-        return models.PlaylistEntry.objects.get(vidroom=vidroom, video_id=video_id)
-    except MultipleObjectsReturned:
-        return models.PlaylistEntry.objects.filter(vidroom=vidroom, video_id=video_id)
+    return models.PlaylistEntry.objects.get(vidroom=vidroom, video_id=video_id, id=entry_id)
 
 
-def remove_playlist_entry(vidroom, video_id):
-    """Removes the playlist entry whose vidroom and video_id corresponds with inputted data.
+def remove_playlist_entry(vidroom, video_id, entry_id):
+    """Removes the playlist entry whose vidroom, video_id, and unique id corresponds with inputted data.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0).save()
-    >>> remove_playlist_entry(vidroom, '1')
-    >>> models.PlaylistEntry.objects.filter(vidroom=vidroom, video_id='1')
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
+    >>> remove_playlist_entry(vidroom, '1', 0)
+    >>> models.PlaylistEntry.objects.filter(vidroom=vidroom, video_id='1', id=0)
     <QuerySet []>
     """
-    playlist_entry = find_single_playlist_entry(vidroom, video_id)
+    playlist_entry = find_single_playlist_entry(vidroom, video_id, entry_id)
     playlist_entry.delete()
 
 
@@ -122,11 +119,12 @@ def find_playlist_for_vidroom(vidroom):
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0).save()
-    >>> models.PlaylistEntry(vidroom=vidroom, video_id='2', position=1).save()
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='2', position=1, id=1).save()
     >>> find_playlist_for_vidroom(vidroom)
     <QuerySet [PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=\
-0), PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='2', position=1)]>
+0, id=0), PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='2', position=1, id\
+=1)]>
     """
     return models.PlaylistEntry.objects.filter(vidroom=vidroom).order_by('position')
 
@@ -136,10 +134,10 @@ def change_entry_position(entry, new_position):
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0).save()
-    >>> entry = models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1')
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
+    >>> entry = models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1', id=0)
     >>> change_entry_position(entry, 1)
-    >>> updatedEntry = models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1')
+    >>> updatedEntry = models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1', id=0)
     >>> updatedEntry.position
     1
     """
@@ -159,6 +157,16 @@ def find_if_entry_moved_up(original_position, new_position):
     return original_position > new_position
 
 
+def reorder_playlist_on_remove(removed_entry, playlist):
+    """Reorders the playlist on the removal of a playlist entry."""
+    removed_entry_orig_position = removed_entry.position
+    for entry in playlist:
+        entry_orig_position = entry.position
+        if entry_orig_position > removed_entry_orig_position:
+            updated_position = entry_orig_position - 1
+            change_entry_position(entry, updated_position)
+
+
 def reorder_playlist(moved_entry, moved_entry_new_position, playlist):
     """Reorders the playlist based on the moved playlist entry. First detects if the playlist entry
     moved up or down, then changes the position and saves for each entry based on the new position
@@ -166,28 +174,27 @@ def reorder_playlist(moved_entry, moved_entry_new_position, playlist):
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
-    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0).save()
-    >>> models.PlaylistEntry(vidroom=vidroom, video_id='2', position=1).save()
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='2', position=1, id=1).save()
     >>> playlist = models.PlaylistEntry.objects.filter(vidroom=vidroom).order_by('position')
-    >>> moved_entry = models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1')
+    >>> moved_entry = models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1', id=0)
     >>> moved_entry_new_position = 1
     >>> reorder_playlist(moved_entry, moved_entry_new_position, playlist)
     >>> models.PlaylistEntry.objects.filter(vidroom=vidroom).order_by('position')
     <QuerySet [PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='2', position=\
-0), PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=1)]>
+0, id=1), PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=1, id\
+=0)]>
     """
     moved_entry_orig_position = moved_entry.position
     entry_moved_up = find_if_entry_moved_up(moved_entry_orig_position, moved_entry_new_position)
     for entry in playlist:
+        entry_orig_position = entry.position
         if entry_moved_up:
-            if entry.position >= moved_entry_new_position and entry.position < moved_entry_orig_position:
-                entry_orig_position = entry.position
+            if entry_orig_position >= moved_entry_new_position and entry.position < moved_entry_orig_position:
                 updated_position = entry_orig_position + 1
                 change_entry_position(entry, updated_position)
         else:
-            if entry.position > moved_entry_orig_position and entry.position <= moved_entry_new_position:
-                original_position = entry.position
-                updated_position = original_position - 1
+            if entry_orig_position > moved_entry_orig_position and entry.position <= moved_entry_new_position:
+                updated_position = entry_orig_position - 1
                 change_entry_position(entry, updated_position)
     change_entry_position(moved_entry, moved_entry_new_position)
-

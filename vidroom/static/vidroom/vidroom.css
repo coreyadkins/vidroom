@@ -22,7 +22,7 @@ section.playlist {
 
 div.playlistbody {
   background-color: black;
-  height: 323px;
+  height: 525px;
   overflow: scroll;
 }
 
