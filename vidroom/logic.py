@@ -158,11 +158,24 @@ def find_if_entry_moved_up(original_position, new_position):
 
 
 def reorder_playlist_on_remove(removed_entry, playlist):
-    """Reorders the playlist on the removal of a playlist entry."""
-    removed_entry_orig_position = removed_entry.position
+    """Reorders the playlist on the removal of a playlist entry.
+
+    >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
+    >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
+    >>> models.PlaylistEntry(vidroom=vidroom, video_id='2', position=1, id=1).save()
+    >>> playlist = models.PlaylistEntry.objects.filter(vidroom=vidroom).order_by('position')
+    >>> removed_entry = models.PlaylistEntry.objects.get(vidroom=vidroom, video_id='1', id=0)
+    >>> reorder_playlist_on_remove(removed_entry, playlist)
+    >>> delete = removed_entry.delete()
+    >>> models.PlaylistEntry.objects.filter(vidroom=vidroom)
+    <QuerySet [PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='2', position=\
+0, id=1)]>
+    """
+    removed_entry_position = removed_entry.position
     for entry in playlist:
         entry_orig_position = entry.position
-        if entry_orig_position > removed_entry_orig_position:
+        if entry_orig_position > removed_entry_position:
             updated_position = entry_orig_position - 1
             change_entry_position(entry, updated_position)
 
