@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from . import logic
 from . import models
-
+import os
 
 def render_index(request):
     """Renders the home page, where user can submit to generate a VidRoom."""
@@ -28,7 +28,7 @@ def render_vidroom(request, vidroom_id):
     """Renders the VidRoom by the inputted id numbers."""
     arguments = {
         'vidroom_id': vidroom_id,
-        'GOOGLE_API_KEY': GOOGLE_API_KEY
+        'GOOGLE_API_KEY': os.environ['GOOGLE_API_KEY']
     }
     return render(request, 'vidroom/vidroom.html', arguments)
 
