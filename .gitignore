@@ -22,3 +22,5 @@ mediafiles
 
 # Keys
 .keys.js
+# Heroku production secrets
+.env
