@@ -75,7 +75,7 @@ function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
   player = new YT.Player('player', { // eslint-disable-line no-undef
     height: '600',
     width: '90%',
-    videoId: 'QH2-TGUlwu4',
+    videoId: currentPlaylist[0].video_id,
     events: {
       'onReady': runStatusQueryLoop, //eslint-disable-line no-use-before-define
       'onStateChange': onPlayerStateChange //eslint-disable-line no-use-before-define
@@ -424,7 +424,6 @@ function updatePlaylistDisplay(videoID, entryID, title) {
  * ensure items are appended in the correct order.
  */
 function updatePlaylist(playlist) {
-  currentPlaylist = playlist;
   $('#playlistqueue').empty();
   Promise.all(retrieveAllVideoTitles()).
     then(function(jsonResponseArray) {
@@ -513,6 +512,7 @@ function registerPlaylist(playlist) {
   playlist = _.sortBy(playlist, 'position');
   var isNewPlaylist = checkIfNewPlaylist(playlist);
   if (isNewPlaylist) {
+    currentPlaylist = playlist;
     if (_.isEqual(currentPlaylist[0], _currentVideoID) !== true) {
       serveNewVideo(currentPlaylist[0].video_id);
     }
@@ -572,9 +572,12 @@ function queryServerForStatus() {
  * Query, pipes those into the respective functions to update the page.
  */
 function registerServerQuery(JsonResponse) {
-  Promise.all(registerPlaylist(JsonResponse.playlist)).
-    then(registerVideoEvent(JsonResponse.event));
+  return Promise.resolve(function() {
+    registerPlaylist(JsonResponse.playlist).
+        then(registerVideoEvent(JsonResponse.event));
+    });
 }
+
 // 6. Register
 
 /**
@@ -615,8 +618,12 @@ function windowPrompt() {
  */
 function initializeSetup() {
   windowPrompt();
-  setUpYoutubePlayerScript();
-  initializePlaylistHandlers();
+  queryServerForStatus().
+    then(registerServerQuery).
+      then(function () {
+        setUpYoutubePlayerScript();
+        initializePlaylistHandlers();
+      });
 }
 
 $(document).ready(initializeSetup);
