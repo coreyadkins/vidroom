@@ -65,7 +65,7 @@ function onPlayerStateChange(event) {
  * handles events related to the player, and runs runStatusQueryLoop, which sets
  * up a loop querying the server for new data.
  *
- * Run by the YouTube API script which is imported from a separate module in the
+ * Run by the YouTube API script which is imported from a separate script in the
  * HTML.
  *
  * This script from YouTube API Docs,
@@ -87,7 +87,7 @@ function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
  * Sets up the YouTube player script which runs the code to create the YouTube
  * player.
  *
- * Run by the YouTube API script which is imported from a separate module in the
+ * Run by the YouTube API script which is imported from a separate script in the
  * HTML.
  *
  * This script from YouTube API Docs,
@@ -236,16 +236,16 @@ function _formatEntryAddDataForJson(videoID) {
  * Transforms inputted playlist entry remove data into format acceptable by Ajax
  * Json call.
  */
-function _formatEntryRemoveDataForJson(videoID, entryID) {
-  return {'video_id': videoID, 'id': entryID};
+function _formatEntryRemoveDataForJson(entryID) {
+  return {'id': entryID};
 }
 
 /**
  * Transforms inputted playlist entry move data into format acceptable by Ajax
  * Json call.
  */
-function _formatReorderDataForJson(videoID, entryID, position) {
-  return {'video_id': videoID, 'id': entryID, 'new_position': position};
+function _formatReorderDataForJson(entryID, position) {
+  return {'id': entryID, 'new_position': position};
 }
 
 /**
@@ -323,7 +323,7 @@ function createPlaylistItem(videoID, entryID, title) {
  * Updates the playlist on the DOM with the newly created element.
  */
 function appendPlaylist(playlistItem) {
-  $('ul').append(playlistItem);
+  $('#playlistqueue').append(playlistItem);
 }
 
 /**
@@ -359,9 +359,9 @@ function logPlaylistAdd(videoID) {
 /**
  * Logs deletion of a playlist entry to the server.
  */
-function logPlaylistRemove(videoID, entryID, actionURL) {
+function logPlaylistRemove(entryID, actionURL) {
   var submitMethod = 'post';
-  var formData = _formatEntryRemoveDataForJson(videoID, entryID);
+  var formData = _formatEntryRemoveDataForJson(entryID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -372,10 +372,10 @@ function logPlaylistRemove(videoID, entryID, actionURL) {
 /**
  * Logs a playlist entry changing position to the server.
  */
-function logPositionChange(videoID, entryID, newPosition) {
+function logPositionChange(entryID, newPosition) {
   var submitMethod = 'post';
   var actionURL = PLAYLIST_REORDER_URL;
-  var data = _formatReorderDataForJson(videoID, entryID, newPosition);
+  var data = _formatReorderDataForJson(entryID, newPosition);
   return Promise.resolve($.ajax({
     data: data,
     url: actionURL,
@@ -450,22 +450,23 @@ function addPlaylistEntry() {
   */
 function removePlaylistEntry(entry) {
   var actionURL = entry.children('.deletebutton').attr('href');
-  var videoID = entry.attr('id');
   var entryID = entry.data().id;
-  logPlaylistRemove(videoID, entryID, actionURL);
+  logPlaylistRemove(entryID, actionURL);
 }
 
 /**
  * Finds the next video in the playlist, logs the position changes of the
  * previous video and next video to the server, cues the YouTube player to play
  * the next video, then updates the global variable holding the current video.
+ *
+ * Called when a video ends (by playing it's full length in the player).
  */
 function serveNextVideo() {
   var nextVideoID = _mostRecentPlaylist[1].video_id;
   var nextEntryID = _mostRecentPlaylist[1].id;
   var bottomPosition = getPlaylistLength();
-  logPositionChange(_currentVideoID, nextEntryID, bottomPosition);
-  logPositionChange(nextVideoID, nextEntryID, 0);
+  logPositionChange(nextEntryID, bottomPosition);
+  logPositionChange(nextEntryID, 0);
   cueVideo(nextVideoID);
   _currentVideoID = nextVideoID;
 }
@@ -497,8 +498,6 @@ function initializeDeleteButtonHandler(entry) {
  * Takes in the playlist returned by the server query, detects if it is a new
  * playlist, if it is, runs the main to update the playlist.
  *
- * Then tests if the first entry has changed, and if so, cues up the new video.
- *
  * If a new playlist entry is in the first position of the playlist, runs
  * function to play that video
  */
@@ -512,9 +511,10 @@ function registerPlaylist(playlist) {
     }
   }
 }
+
 /**
  * Initializes Event Handlers related to the submit form and reorder item
- * actions on the playlist..
+ * actions on the playlist.
  */
 function initializePlaylistHandlers() {
   $('#playlistform').on('submit', function(event) {
@@ -526,9 +526,8 @@ function initializePlaylistHandlers() {
       stop: function(event, ui) {
         var movedEntry = $(ui.item);
         var newPosition = ui.item.index();
-        var movedVideoID = movedEntry.attr('id');
         var movedEntryID = movedEntry.data().id;
-        logPositionChange(movedVideoID, movedEntryID, newPosition);
+        logPositionChange(movedEntryID, newPosition);
       }
     });
   });
@@ -559,8 +558,8 @@ function queryServerForStatus() {
 
 // 5. Main
 /**
- * Takes the playlist and most recent video event returned from the Server Query,
- * pipes those into the respective functions to update the page.
+ * Takes the playlist and most recent video event returned from the Server
+ * Query, pipes those into the respective functions to update the page.
  */
 function registerServerQuery(JsonResponse) {
   registerVideoEvent(JsonResponse.event);

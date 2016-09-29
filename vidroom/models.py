@@ -29,8 +29,8 @@ class Event(models.Model):
     """Event is used to store the most recent pause or play event for a particular VidRoom, so that it can be queried
     for syncing.
 
-    Each event has the ID of the VidroomID, which ensures that the server only remembers the last event for each
-    Vidroom.
+    Each event contains the VidRoom associated with it, as well as the time the video was at at the moment of the event,
+    and a timestamp containing the server time at the time of the event.
     """
     vidroom = models.ForeignKey(VidRoom)
     event_type = models.TextField()

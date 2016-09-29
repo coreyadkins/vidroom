@@ -2,7 +2,13 @@ body {
   background-color: SlateGray;
   color: white;
 }
-div {
+
+header {
+  display: flex;
+  justify-content: center;
+}
+
+section {
   display: flex;
   justify-content: center;
 }

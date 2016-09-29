@@ -11,7 +11,6 @@ main {
   display: flex;
 }
 
-
 section.player {
   flex: 3;
 }
@@ -53,7 +52,4 @@ div.playlistbody {
 #playlistqueue li .deletebutton {
   flex: 1;
   margin-left: 10px;
-}
-
-.ui-sortable {
 }
