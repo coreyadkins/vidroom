@@ -311,7 +311,7 @@ function createPlaylistItem(videoID, entryID, title) {
   var url = createYoutubeUrl(videoID);
   var deleteButton = '<a class="deletebutton" href="' + PLAYLIST_ENTRY_REM_URL +
    '">X' + '</a>';
-  var img = '<img src="http://img.youtube.com/vi/' + videoID + '/sddefault.jp' +
+  var img = '<img src="https://img.youtube.com/vi/' + videoID + '/sddefault.jp' +
    'g" height="50" width="50">';
   return $('<li id="' + videoID + '" data-id="' + entryID + '">' + img +
           '<span>' + title + '</span><a class="link" href=' + url + '>Link' +
