@@ -114,8 +114,8 @@ var _mostRecentVideoEventType;
 /**
  * Transforms inputted event data into format acceptable by Ajax Json call.
  */
-function _formatVideoEventDataForJson(eventType, time) {
-  return {'event_type': eventType, 'video_time': time};
+function _formatVideoEventDataForJson(eventType, time, entryID) {
+  return {'event_type': eventType, 'video_time': time, 'entry_id': entryID};
 }
 
 /**
@@ -137,9 +137,9 @@ function checkIfNewVideoEvent(videoEvent) {
  * Sends an AJAX call to the server to log each pause or play video event after
  * inputted by the user.
  */
-function logVideoEvent(eventType, time, actionURL) {
+function logVideoEvent(eventType, time, entryID, actionURL) {
   var submitMethod = 'post';
-  var formData = _formatVideoEventDataForJson(eventType, time);
+  var formData = _formatVideoEventDataForJson(eventType, time, entryID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -154,7 +154,8 @@ function logVideoEvent(eventType, time, actionURL) {
  */
 function runPlaySequence() {
   var time = getVideoTime();
-  logVideoEvent('play', time, VIDEO_EVENT_LOG_URL).
+  var entryID = currentPlaylist[0].id; //eslint-disable-line no-use-before-define
+  logVideoEvent('play', time, entryID, VIDEO_EVENT_LOG_URL).
     then(function() {
       playVideo();
     });
@@ -166,7 +167,8 @@ function runPlaySequence() {
  */
 function runPauseSequence() {
   var time = getVideoTime();
-  logVideoEvent('pause', time, VIDEO_EVENT_LOG_URL).
+  var entryID = currentPlaylist[0].id; //eslint-disable-line no-use-before-define
+  logVideoEvent('pause', time, entryID, VIDEO_EVENT_LOG_URL).
     then(function() {
       pauseVideo();
     });
@@ -181,6 +183,12 @@ function runPauseSequence() {
 function registerVideoEvent(videoEvent) {
   var isNewVideoEvent = checkIfNewVideoEvent(videoEvent);
   if (isNewVideoEvent) {
+    var entryID = videoEvent.entry_id;
+    if (currentPlaylist[0].id !== entryID) { //eslint-disable-line no-use-before-define
+      var entry = _.find(currentPlaylist, {'id': entryID}); //eslint-disable-line no-use-before-define
+      var videoID = entry.video_id;
+      cueVideo(videoID);
+    }
     _mostRecentVideoEventTime = videoEvent.timestamp;
     videoSeekTo(videoEvent.video_time_at);
     if (videoEvent.event_type === 'play') {
@@ -213,7 +221,7 @@ function initializeVideoEventHandlers(videoEventType) {
 var PLAYLIST_ENTRY_ADD_URL = $('#playlistform').attr('action');
 var PLAYLIST_ENTRY_REM_URL = $('#playlistform').data().remove;
 var PLAYLIST_REORDER_URL = $('#playlistform').data().move;
-var _mostRecentPlaylist;
+var currentPlaylist;
 var _currentVideoID;
 
 /**
@@ -279,7 +287,7 @@ function getVideoID(url) {
  * Returns the length of the current playlist.
  */
 function getPlaylistLength() {
-  return _mostRecentPlaylist.length;
+  return currentPlaylist.length;
 }
 
 /**
@@ -287,7 +295,7 @@ function getPlaylistLength() {
  * variable. Returns bool value True if it is a new playlist.
  */
 function checkIfNewPlaylist(playlist) {
-  if (_.isEqual(playlist, _mostRecentPlaylist)) {
+  if (_.isEqual(playlist, currentPlaylist)) {
     return false;
   } else {
     return true;
@@ -390,8 +398,8 @@ function logPositionChange(entryID, newPosition) {
  */
 function retrieveAllVideoTitles() {
   var videoTitles = [];
-  for (var i = 0; i < _mostRecentPlaylist.length; i += 1) {
-    videoTitles.push(retrieveVideoTitle(_mostRecentPlaylist[i].video_id));
+  for (var i = 0; i < currentPlaylist.length; i += 1) {
+    videoTitles.push(retrieveVideoTitle(currentPlaylist[i].video_id));
   }
   return videoTitles;
 }
@@ -416,7 +424,7 @@ function updatePlaylistDisplay(videoID, entryID, title) {
  * ensure items are appended in the correct order.
  */
 function updatePlaylist(playlist) {
-  _mostRecentPlaylist = playlist;
+  currentPlaylist = playlist;
   $('#playlistqueue').empty();
   Promise.all(retrieveAllVideoTitles()).
     then(function(jsonResponseArray) {
@@ -462,8 +470,8 @@ function removePlaylistEntry(entry) {
  * Called when a video ends (by playing it's full length in the player).
  */
 function serveNextVideo() {
-  var nextVideoID = _mostRecentPlaylist[1].video_id;
-  var nextEntryID = _mostRecentPlaylist[1].id;
+  var nextVideoID = currentPlaylist[1].video_id;
+  var nextEntryID = currentPlaylist[1].id;
   var bottomPosition = getPlaylistLength();
   logPositionChange(nextEntryID, bottomPosition);
   logPositionChange(nextEntryID, 0);
@@ -505,10 +513,12 @@ function registerPlaylist(playlist) {
   playlist = _.sortBy(playlist, 'position');
   var isNewPlaylist = checkIfNewPlaylist(playlist);
   if (isNewPlaylist) {
-    updatePlaylist(playlist);
-    if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
-      serveNewVideo(_mostRecentPlaylist[0].video_id);
+    if (_.isEqual(currentPlaylist[0], _currentVideoID) !== true) {
+      serveNewVideo(currentPlaylist[0].video_id);
     }
+    return Promise.resolve(updatePlaylist(playlist));
+  } else {
+    return Promise.resolve();
   }
 }
 
@@ -562,8 +572,8 @@ function queryServerForStatus() {
  * Query, pipes those into the respective functions to update the page.
  */
 function registerServerQuery(JsonResponse) {
-  registerVideoEvent(JsonResponse.event);
-  registerPlaylist(JsonResponse.playlist);
+  Promise.all(registerPlaylist(JsonResponse.playlist)).
+    then(registerVideoEvent(JsonResponse.event));
 }
 // 6. Register
 
