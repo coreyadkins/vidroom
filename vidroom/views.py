@@ -27,7 +27,8 @@ def get_new_vidroom(request):
 def render_vidroom(request, vidroom_id):
     """Renders the VidRoom by the inputted id numbers."""
     arguments = {
-        'vidroom_id': vidroom_id
+        'vidroom_id': vidroom_id,
+        'GOOGLE_API_KEY': GOOGLE_API_KEY
     }
     return render(request, 'vidroom/vidroom.html', arguments)
 
