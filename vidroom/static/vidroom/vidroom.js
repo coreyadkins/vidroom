@@ -23,7 +23,7 @@ function playVideo() {
 }
 
 /**
- * Pauses teh YouTube Video.
+ * Pauses the YouTube Video.
  */
 function pauseVideo() {
   player.pauseVideo();
@@ -73,7 +73,7 @@ function onPlayerStateChange(event) {
 */
 function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
   player = new YT.Player('player', { // eslint-disable-line no-undef
-    height: '390',
+    height: '600',
     width: '90%',
     videoId: 'QH2-TGUlwu4',
     events: {
@@ -225,19 +225,36 @@ function getPlaylistInput() {
 
 // 2. Transform
 /**
- * Transforms inputted playlist entry data into format acceptable by Ajax Json
- * call.
+ * Transforms inputted playlist entry add data into format acceptable by Ajax
+ * Json call.
  */
-function _formatEntryDataForJson(videoID) {
+function _formatEntryAddDataForJson(videoID) {
   return {'video_id': videoID};
+}
+
+/**
+ * Transforms inputted playlist entry remove data into format acceptable by Ajax
+ * Json call.
+ */
+function _formatEntryRemoveDataForJson(videoID, entryID) {
+  return {'video_id': videoID, 'id': entryID};
 }
 
 /**
  * Transforms inputted playlist entry move data into format acceptable by Ajax
  * Json call.
  */
-function _formatReorderDataForJson(videoID, position) {
-  return {'video_id': videoID, 'new_position': position};
+function _formatReorderDataForJson(videoID, entryID, position) {
+  return {'video_id': videoID, 'id': entryID, 'new_position': position};
+}
+
+/**
+ * Uses RegExp to test if inputted URL is a valid YouTube URL, if it is, returns
+ * true, else, returns false.
+ */
+function checkIfValidYouTubeURL(url) {
+  var regex = new RegExp(/(http|https):\/\/www\.youtube\.com\/watch\?v=.+/g);
+  return regex.test(url);
 }
 
 /**
@@ -290,14 +307,15 @@ function createYoutubeUrl(videoID) {
  * a thumbnail preview image, and a link to a video url to be inserted into the
  * playlist.
  */
-function createPlaylistItem(videoID) {
+function createPlaylistItem(videoID, entryID, title) {
   var url = createYoutubeUrl(videoID);
   var deleteButton = '<a class="deletebutton" href="' + PLAYLIST_ENTRY_REM_URL +
    '">X' + '</a>';
   var img = '<img src="http://img.youtube.com/vi/' + videoID + '/sddefault.jp' +
    'g" height="50" width="50">';
-  return $('<li id="' + videoID + '">' + img + '<a class="link" href=' + url +
-   '>Link' + deleteButton + '</a></li>');
+  return $('<li id="' + videoID + '" data-id="' + entryID + '">' + img +
+          '<span>' + title + '</span><a class="link" href=' + url + '>Link' +
+          '</a>' + deleteButton + '</li>');
 }
 
 // 4. Modify and Synchronize
@@ -307,13 +325,30 @@ function createPlaylistItem(videoID) {
 function appendPlaylist(playlistItem) {
   $('ul').append(playlistItem);
 }
+
+/**
+ * Sends a request to the YouTube Data API to retrieve the title of the YouTube
+ * video.
+ */
+function retrieveVideoTitle(videoID) {
+  var actionURL = 'https://www.googleapis.com/youtube/v3/videos?id=' + videoID +
+                '&key=' + GOOGLE_API_KEY + '&fields=items(snippet(title))&par' + //eslint-disable-line no-undef
+                't=snippet';
+  var submitMethod = 'get';
+  return Promise.resolve($.ajax({
+    url: actionURL,
+    method: submitMethod
+  }));
+}
+
+
 /**
  * Logs a new playlist entry to the server.
  */
 function logPlaylistAdd(videoID) {
   var actionURL = PLAYLIST_ENTRY_ADD_URL;
   var submitMethod = 'post';
-  var formData = _formatEntryDataForJson(videoID);
+  var formData = _formatEntryAddDataForJson(videoID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -324,9 +359,9 @@ function logPlaylistAdd(videoID) {
 /**
  * Logs deletion of a playlist entry to the server.
  */
-function logPlaylistRemove(videoID, actionURL) {
+function logPlaylistRemove(videoID, entryID, actionURL) {
   var submitMethod = 'post';
-  var formData = _formatEntryDataForJson(videoID);
+  var formData = _formatEntryRemoveDataForJson(videoID, entryID);
   return Promise.resolve($.ajax({
     url: actionURL,
     method: submitMethod,
@@ -337,10 +372,10 @@ function logPlaylistRemove(videoID, actionURL) {
 /**
  * Logs a playlist entry changing position to the server.
  */
-function logPositionChange(videoID, newPosition) {
+function logPositionChange(videoID, entryID, newPosition) {
   var submitMethod = 'post';
   var actionURL = PLAYLIST_REORDER_URL;
-  var data = _formatReorderDataForJson(videoID, newPosition);
+  var data = _formatReorderDataForJson(videoID, entryID, newPosition);
   return Promise.resolve($.ajax({
     data: data,
     url: actionURL,
@@ -350,25 +385,48 @@ function logPositionChange(videoID, newPosition) {
 
 // 5. Main
 /**
- * Creates a new playlist element and updates it to the playlist.
+ * Submits AJAX API requests for all of the video titles in the playlist,
+ * appends promises for these into an array that it returns.
  */
-function updatePlaylistDisplay(videoID) {
-  var playlistItem = createPlaylistItem(videoID);
+function retrieveAllVideoTitles() {
+  var videoTitles = [];
+  for (var i = 0; i < _mostRecentPlaylist.length; i += 1) {
+    videoTitles.push(retrieveVideoTitle(_mostRecentPlaylist[i].video_id));
+  }
+  return videoTitles;
+}
+
+/**
+ * Creates a new playlist element and updates it to the playlist. Runs function
+ * which sets up the delete button handler on the entry.
+ */
+function updatePlaylistDisplay(videoID, entryID, title) {
+  var playlistItem = createPlaylistItem(videoID, entryID, title);
   appendPlaylist(playlistItem);
+  var entry = $('#' + videoID);
+  initializeDeleteButtonHandler(entry); //eslint-disable-line no-use-before-define
 }
 
 /**
  * Called when a new (or newly ordered) playlist is received, sets this playlist
  * as most recent, clears the current DOM displayed playlist, and repopulates
  * with the new playlist.
+ *
+ * First fulfills all promises to retrieve video titles from YouTube Data API to
+ * ensure items are appended in the correct order.
  */
 function updatePlaylist(playlist) {
   _mostRecentPlaylist = playlist;
   $('#playlistqueue').empty();
-  for (var i = 0; i < playlist.length; i += 1) {
-    var videoID = playlist[i];
-    updatePlaylistDisplay(videoID);
-  }
+  Promise.all(retrieveAllVideoTitles()).
+    then(function(jsonResponseArray) {
+      for (var i = 0; i < playlist.length; i += 1) {
+        var title = jsonResponseArray[i].items[0].snippet.title;
+        var videoID = playlist[i].video_id;
+        var entryID = playlist[i].id;
+        updatePlaylistDisplay(videoID, entryID, title);
+      }
+    });
 }
 
 
@@ -378,8 +436,13 @@ function updatePlaylist(playlist) {
  */
 function addPlaylistEntry() {
   var url = getPlaylistInput();
-  var videoID = getVideoID(url);
-  logPlaylistAdd(videoID);
+  var isValidYouTubeURL = checkIfValidYouTubeURL(url);
+  if (isValidYouTubeURL) {
+    var videoID = getVideoID(url);
+    logPlaylistAdd(videoID);
+  } else {
+    alert('Please insert only a valid YouTube URL!');
+  }
 }
 /**
   * Called when user deletes a playlist entry via the delete button. Logs this
@@ -388,7 +451,8 @@ function addPlaylistEntry() {
 function removePlaylistEntry(entry) {
   var actionURL = entry.children('.deletebutton').attr('href');
   var videoID = entry.attr('id');
-  logPlaylistRemove(videoID, actionURL);
+  var entryID = entry.data().id;
+  logPlaylistRemove(videoID, entryID, actionURL);
 }
 
 /**
@@ -397,10 +461,11 @@ function removePlaylistEntry(entry) {
  * the next video, then updates the global variable holding the current video.
  */
 function serveNextVideo() {
-  var nextVideoID = _mostRecentPlaylist[1];
+  var nextVideoID = _mostRecentPlaylist[1].video_id;
+  var nextEntryID = _mostRecentPlaylist[1].id;
   var bottomPosition = getPlaylistLength();
-  logPositionChange(_currentVideoID, bottomPosition);
-  logPositionChange(nextVideoID, 0);
+  logPositionChange(_currentVideoID, nextEntryID, bottomPosition);
+  logPositionChange(nextVideoID, nextEntryID, 0);
   cueVideo(nextVideoID);
   _currentVideoID = nextVideoID;
 }
@@ -417,27 +482,33 @@ function serveNewVideo(newVideoID) {
 
 // 6. Register
 /**
+ * Called on each entry each time the playlist is updated, sets up event handler
+ * to send delete log to the server on user click of the delete button.
+ */
+function initializeDeleteButtonHandler(entry) {
+  entry.children('.deletebutton').on('click', function(event) {
+    event.preventDefault();
+    removePlaylistEntry(entry);
+  });
+}
+
+
+/**
  * Takes in the playlist returned by the server query, detects if it is a new
  * playlist, if it is, runs the main to update the playlist.
  *
- * Then creates the event handler for deleting an entry, so that is refreshed
- * for each playlist update.
+ * Then tests if the first entry has changed, and if so, cues up the new video.
  *
  * If a new playlist entry is in the first position of the playlist, runs
  * function to play that video
  */
 function registerPlaylist(playlist) {
+  playlist = _.sortBy(playlist, 'position');
   var isNewPlaylist = checkIfNewPlaylist(playlist);
   if (isNewPlaylist) {
     updatePlaylist(playlist);
-    $('.deletebutton').on('click', function(event) {
-      event.preventDefault();
-      var deleteButton = $(event.target);
-      var entry = deleteButton.parent();
-      removePlaylistEntry(entry);
-    });
-    if (_mostRecentPlaylist[0] !== _currentVideoID) {
-      serveNewVideo(_mostRecentPlaylist[0]);
+    if (_.isEqual(_mostRecentPlaylist[0], _currentVideoID) !== true) {
+      serveNewVideo(_mostRecentPlaylist[0].video_id);
     }
   }
 }
@@ -456,11 +527,11 @@ function initializePlaylistHandlers() {
         var movedEntry = $(ui.item);
         var newPosition = ui.item.index();
         var movedVideoID = movedEntry.attr('id');
-        logPositionChange(movedVideoID, newPosition);
+        var movedEntryID = movedEntry.data().id;
+        logPositionChange(movedVideoID, movedEntryID, newPosition);
       }
     });
   });
-
 }
 
 
@@ -538,6 +609,5 @@ function initializeSetup() {
   setUpYoutubePlayerScript();
   initializePlaylistHandlers();
 }
-
 
 $(document).ready(initializeSetup);

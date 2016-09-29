@@ -35,7 +35,7 @@ class Event(models.Model):
     vidroom = models.ForeignKey(VidRoom)
     event_type = models.TextField()
     video_time_at = models.FloatField()
-    timestamp = models.DateTimeField(auto_now_add=True, auto_now=False)
+    timestamp = models.DateTimeField()
 
     def __str__(self):
         """Returns str.
@@ -56,16 +56,21 @@ class Event(models.Model):
 3, 5, 5, 12, 30, 45))"
         """
         return 'Event(vidroom={!r}, event_type={!r}, video_time_at={!r}, timestamp={!r})'.format(self.vidroom,
-                                                                                                    self.event_type,
-                                                                                                    self.video_time_at,
-                                                                                                    self.timestamp)
+                                                                                                 self.event_type,
+                                                                                                 self.video_time_at,
+                                                                                                 self.timestamp)
 
 
 class PlaylistEntry(models.Model):
-    """"""
+    """Playlist Entry is used to store a single video in a playlist corresponding to a VidRoom.
+
+    video_id corresponds to the video's YouTube ID number.
+
+    Position corresponds to the entry's position in the playlist.
+    """
     vidroom = models.ForeignKey(VidRoom)
     video_id = models.TextField()
-    position = models.IntegerField(default=0)
+    position = models.IntegerField()
 
     def __str__(self):
         """Returns str.
@@ -80,8 +85,8 @@ class PlaylistEntry(models.Model):
         """Returns repr.
 
         >>> vidroom = VidRoom(public_id='123')
-        >>> repr(PlaylistEntry(vidroom=vidroom, video_id='4B9NtFlES4U', position=1))
-        "PlaylistEntry(vidroom=VidRoom(public_id='123'), video_id='4B9NtFlES4U', position=1)"
+        >>> repr(PlaylistEntry(vidroom=vidroom, video_id='4B9NtFlES4U', position=1, id=0))
+        "PlaylistEntry(vidroom=VidRoom(public_id='123'), video_id='4B9NtFlES4U', position=1, id=0)"
         """
-        return 'PlaylistEntry(vidroom={!r}, video_id={!r}, position={})'.format(self.vidroom, self.video_id,
-                                                                               self.position)
+        return 'PlaylistEntry(vidroom={!r}, video_id={!r}, position={}, id={!r})'.format(self.vidroom, self.video_id,
+                                                                                         self.position, self.id)
