@@ -12,7 +12,7 @@ def create_uuid():
 
 
 def create_and_save_new_vidroom(vidroom_id):
-    """Takes a UUID, and creates and saves a new vidroom with the supplied id.
+    """Takes a UUID, and creates and saves a new vidroom with the supplied id. Returns that VidRoom.
 
     >>> vidroom = create_and_save_new_vidroom('f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
     >>> models.VidRoom.objects.get(public_id='f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
@@ -24,7 +24,7 @@ def create_and_save_new_vidroom(vidroom_id):
 
 
 def find_vidroom_by_public_id(vidroom_id):
-    """Returns the vidroom which contains the inputted public id number.
+    """Returns the VidRoom which contains the inputted public id number.
 
     >>> models.VidRoom(public_id='f81d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> find_vidroom_by_public_id('f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
@@ -35,7 +35,7 @@ def find_vidroom_by_public_id(vidroom_id):
 
 def create_and_save_new_event(vidroom, event_type, video_time):
     """Takes in the VidRoom the event occurred in, an event type ('pause', or 'play'), and the time of the event on the
-    video, stores as an Event object in the database.
+    video, saves as an Event object in the database.
 
     >>> models.VidRoom(public_id='f81d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f81d4fae-7dec-11d0-a765-00a0c91e6bf6')
@@ -69,7 +69,7 @@ t=135.0, timestamp=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=<UTC>))]>
 
 
 def create_and_save_new_playlist_entry(vidroom, video_id):
-    """Creates a new playlist entry model, determines its proper position by measuring the length of the playlist, then
+    """Creates a new playlist entry, determines its proper position by measuring the length of the playlist, then
     saves the new playlist entry.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
@@ -85,20 +85,20 @@ def create_and_save_new_playlist_entry(vidroom, video_id):
     new_playlist_entry.save()
 
 
-def find_single_playlist_entry(vidroom, video_id, entry_id):
-    """Returns a single playlist entry.
+def find_playlist_entry_by_id(entry_id):
+    """Returns a single playlist entry that matches inputted unique id.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
     >>> models.PlaylistEntry(vidroom=vidroom, video_id='1', position=0, id=0).save()
-    >>> find_single_playlist_entry(vidroom, '1', 0)
+    >>> find_playlist_entry_by_id(vidroom, '1', 0)
     PlaylistEntry(vidroom=VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6'), video_id='1', position=0, id=0)
     """
-    return models.PlaylistEntry.objects.get(vidroom=vidroom, video_id=video_id, id=entry_id)
+    return models.PlaylistEntry.objects.get(id=entry_id)
 
 
-def remove_playlist_entry(vidroom, video_id, entry_id):
-    """Removes the playlist entry whose vidroom, video_id, and unique id corresponds with inputted data.
+def remove_playlist_entry(entry_id):
+    """Removes the playlist entry whose unique id corresponds with inputted data.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
@@ -107,12 +107,12 @@ def remove_playlist_entry(vidroom, video_id, entry_id):
     >>> models.PlaylistEntry.objects.filter(vidroom=vidroom, video_id='1', id=0)
     <QuerySet []>
     """
-    playlist_entry = find_single_playlist_entry(vidroom, video_id, entry_id)
+    playlist_entry = find_playlist_entry_by_id(entry_id)
     playlist_entry.delete()
 
 
 def find_playlist_for_vidroom(vidroom):
-    """Returns the playlist associated with the inputted vidroom.
+    """Returns the playlist for inputted vidroom, a list of all playlist entries associated with that vidroom.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
@@ -143,8 +143,8 @@ def change_entry_position(entry, new_position):
 
 
 def find_if_entry_moved_up(original_position, new_position):
-    """Returns True if the the entry moved up in the playlist (new position number is lower than
-    original position number.
+    """Returns True if the the entry moved up in the playlist (new position number is lower than original position
+    number.
 
     >>> find_if_entry_moved_up(1, 0)
     True
@@ -155,7 +155,8 @@ def find_if_entry_moved_up(original_position, new_position):
 
 
 def reorder_playlist_on_remove(removed_entry, playlist):
-    """Reorders the playlist on the removal of a playlist entry.
+    """Reorders the playlist on the removal of a playlist entry, by moving all playlist entries who were below the
+    removed entry up by one, then saving each in their new position.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
@@ -178,9 +179,9 @@ def reorder_playlist_on_remove(removed_entry, playlist):
 
 
 def reorder_playlist(moved_entry, moved_entry_new_position, playlist):
-    """Reorders the playlist based on the moved playlist entry. First detects if the playlist entry
-    moved up or down, then changes the position and saves for each entry based on the new position
-    of the moved playlist entry.
+    """Reorders the playlist based on the moved playlist entry. First detects if the playlist entry moved up or down,
+    then changes the position as necessary and saves for each entry based on the new position of the moved playlist
+    entry.
 
     >>> models.VidRoom(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6').save()
     >>> vidroom = models.VidRoom.objects.get(public_id='f91d4fae-7dec-11d0-a765-00a0c91e6bf6')
