@@ -9,12 +9,7 @@ paused by one user, it is paused at the same time for all other users.
 
 # Setup
 Requires  a YouTube Data API Key. If you want to run this locally, you'll need
-to obtain a key at https://console.developers.google.com/, and then add it to a
-script tag that you then add into vidroom/templates/vidroom/vidroom.html,
-above the script tag for vidroom.js. You can copy in the following code, adding
-your API key.:
-
-<script> var GOOGLE_API_KEY = 'INSERT_YOUR_API_KEY_HERE'; </script>
+to obtain a key at https://console.developers.google.com/, and then set it as an environment variable in your run configurations, as GOOGLE_API_KEY='YOUR_API_KEY'.
 
 Otherwise no special setup is required, just clone the repository, set up your
 VirtualEnv, install the requirements,and run a local server to test.
