@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="{% static 'vidroom/site.css' %}" />
   </head>
   <body>
-      <header>
+      <div>
         <h1>VidRoom Home</h1>
-      </header>
-      <section>
+      </div>
+      <div>
         <form action="{% url 'new_vidroom_redirect' %}" method="post">
           {% csrf_token %}
           <button name="submit">Get a VidRoom!</button>
         </form>
-      </section>
+      </div>
   </body>
 </html>

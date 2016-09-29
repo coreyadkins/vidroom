@@ -3,12 +3,7 @@ body {
   color: white;
 }
 
-header {
-  display: flex;
-  justify-content: center;
-}
-
-section {
+div {
   display: flex;
   justify-content: center;
 }
