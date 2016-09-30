@@ -3,6 +3,7 @@
 // Youtube API Setup
 // 1. Input
 var player;
+var currentPlaylist;
 
 // 2. Transform
 
@@ -75,7 +76,7 @@ function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
   player = new YT.Player('player', { // eslint-disable-line no-undef
     height: '600',
     width: '90%',
-    videoId: currentPlaylist[0].video_id,
+    videoId: currentPlaylist[0].video_id, //eslint-disable-line no-use-before-define
     events: {
       'onReady': runStatusQueryLoop, //eslint-disable-line no-use-before-define
       'onStateChange': onPlayerStateChange //eslint-disable-line no-use-before-define
@@ -221,7 +222,6 @@ function initializeVideoEventHandlers(videoEventType) {
 var PLAYLIST_ENTRY_ADD_URL = $('#playlistform').attr('action');
 var PLAYLIST_ENTRY_REM_URL = $('#playlistform').data().remove;
 var PLAYLIST_REORDER_URL = $('#playlistform').data().move;
-var currentPlaylist;
 var _currentVideoID;
 
 /**
@@ -575,7 +575,7 @@ function registerServerQuery(JsonResponse) {
   return Promise.resolve(function() {
     registerPlaylist(JsonResponse.playlist).
         then(registerVideoEvent(JsonResponse.event));
-    });
+  });
 }
 
 // 6. Register
@@ -620,7 +620,7 @@ function initializeSetup() {
   windowPrompt();
   queryServerForStatus().
     then(registerServerQuery).
-      then(function () {
+      then(function() {
         setUpYoutubePlayerScript();
         initializePlaylistHandlers();
       });
