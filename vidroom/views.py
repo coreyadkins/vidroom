@@ -14,13 +14,9 @@ def render_index(request):
 def get_new_vidroom(request):
     """Creates a new VidRoom by generating a UUID, then saving a VidRoom with that UUID to the database. Then redirects
     the user to the correct URL for that VidRoom.
-
-    Creates and saves a default event of 'pause' at 0.0 on initiation of VidRoom, and a default playlist entry.
     """
     vidroom_id = str(logic.create_uuid())
     vidroom = logic.create_and_save_new_vidroom(vidroom_id)
-    logic.create_and_save_new_event(vidroom, 'pause', 0.0)
-    logic.create_and_save_new_playlist_entry(vidroom, 'QH2-TGUlwu4')
     return HttpResponseRedirect(vidroom_id)
 
 

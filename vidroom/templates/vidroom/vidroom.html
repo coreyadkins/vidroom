@@ -15,7 +15,8 @@
       <section class="player"
       data-log="{% url 'vidroom_event_log' vidroom_id %}"
       data-query="{% url 'vidroom_status_query' vidroom_id %}">
-        <div id="player"></div>
+        <div id="player"><img
+          src="{% static 'vidroom/vidroom_placeholder.jpg' %}" /></div>
       </section>
       <section class="playlist">
           <h2>Playlist</h2>
@@ -41,7 +42,6 @@
   <script>
       var GOOGLE_API_KEY = "{{ GOOGLE_API_KEY }}";
   </script>
-  </scrip>
   <script src="{% static 'vidroom/ajax_csrf_setup.js' %}"></script>
   <script src="{% static 'vidroom/vidroom.js' %}"></script>
 </html>

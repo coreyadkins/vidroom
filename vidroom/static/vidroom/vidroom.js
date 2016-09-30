@@ -75,7 +75,7 @@ function onYouTubeIframeAPIReady() { // eslint-disable-line no-unused-vars
   player = new YT.Player('player', { // eslint-disable-line no-undef
     height: '600',
     width: '90%',
-    videoId: 'QH2-TGUlwu4',
+    videoId: _mostRecentPlaylist[0].video_id, //eslint-disable-line no-use-before-define
     events: {
       'onReady': runStatusQueryLoop, //eslint-disable-line no-use-before-define
       'onStateChange': onPlayerStateChange //eslint-disable-line no-use-before-define
@@ -605,8 +605,11 @@ function windowPrompt() {
  */
 function initializeSetup() {
   windowPrompt();
-  setUpYoutubePlayerScript();
   initializePlaylistHandlers();
+  runStatusQueryLoop();
+  if (_mostRecentPlaylist !== undefined) {
+    setUpYoutubePlayerScript();
+  }
 }
 
 $(document).ready(initializeSetup);
