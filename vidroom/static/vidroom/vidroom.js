@@ -592,10 +592,10 @@ function runStatusQueryLoop() {
  * Creates a prompt to encourage the user to copy the path to the VidRoom to
  * their clipboard.
  */
-function windowPrompt() {
-  window.prompt('VidRoom Created! Copy the URL to your clipboard to return to' +
-   ' it at any time. Just hit Ctrl + C', window.location.href);
-}
+// function windowPrompt() {
+//   window.prompt('VidRoom Created! Copy the URL to your clipboard to return to' +
+//    ' it at any time. Just hit Ctrl + C', window.location.href);
+// }
 
 // 5. Main
 
@@ -604,7 +604,7 @@ function windowPrompt() {
  * Initializes page setup runs component modules.
  */
 function initializeSetup() {
-  windowPrompt();
+  // windowPrompt();
   setUpYoutubePlayerScript();
   initializePlaylistHandlers();
 }
